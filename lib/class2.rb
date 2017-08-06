@@ -90,14 +90,10 @@ class Class2
           attributes.each do |key, value|
             if value.is_a?(Hash) || value.is_a?(Array)
               name  = key.to_s.classify
-              klass = case
-              when Object.const_defined?(name)
-                Object.const_get(name)
-              when self.class.parent.const_defined?(name)
-                self.class.parent.const_get(name)
-              else
-                next
-              end
+
+              # Only look in our namespace to prevent unwanted lookup
+              next unless self.class.parent.const_defined?(name)
+              klass = self.class.parent.const_get(name)
 
               value = value.is_a?(Hash) ? klass.new(value) : value.map { |v| klass.new(v) }
             end

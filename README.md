@@ -52,6 +52,10 @@ address = Address.new(:city => "Da Bay", :state => "CA", :country => country)
 user.addresses << address
 
 p User.new(:name => "sshaw") == User.new(:name => "sshaw")  # true
+
+Class2(:foo, :bar => :baz)
+Foo.new
+Bar.new(:baz => 123)
 ```
 
 ### Namespaces

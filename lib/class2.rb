@@ -19,6 +19,7 @@ class Class2
       end
 
       specs.each do |spec|
+        spec = [spec] unless spec.respond_to?(:each)
         spec.each { |klass, attributes| make_class(namespace, klass, attributes) }
       end
 

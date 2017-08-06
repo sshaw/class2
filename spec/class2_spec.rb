@@ -59,6 +59,7 @@ describe Class2 do
 
     user1.id = 99
     user1.wont_equal user2
+    user1.wont_equal "foo"
   end
 
   describe "attributes that accept an Array" do

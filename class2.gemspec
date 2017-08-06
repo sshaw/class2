@@ -9,8 +9,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Skye Shaw"]
   spec.email         = ["skye.shaw@gmail.com"]
 
-  spec.summary       = %q{Create class hierarchies, easily.}
-  spec.description   = %q{}
+  spec.summary       = %q{Easily create hierarchies of classes that support nested attributes, equality, and more.}
   spec.homepage      = "https://github.com/sshaw/class2"
   spec.license       = "MIT"
 

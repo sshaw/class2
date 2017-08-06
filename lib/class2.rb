@@ -39,7 +39,7 @@ class Class2
 
       nested, simple = attributes.compact.partition { |e| e.is_a?(Hash) }
       nested.each do |object|
-        object.each { |klass, _attributes| make_class(namespace, klass, _attributes) }
+        object.each { |klass, attrs| make_class(namespace, klass, attrs) }
       end
 
       klass = Class.new do

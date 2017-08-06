@@ -2,6 +2,8 @@
 
 Easily create hierarchies of classes that support nested attributes, equality, and more.
 
+[![Build Status](https://travis-ci.org/sshaw/class2.svg?branch=master)](https://travis-ci.org/sshaw/class2)
+
 ## Usage
 
 ```rb

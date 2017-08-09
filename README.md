@@ -1,6 +1,6 @@
 # Class2
 
-Easily create hierarchies of classes that support nested attributes, equality, and more.
+Easily create hierarchies of classes that support nested attributes, type conversion, equality, and more.
 
 [![Build Status](https://travis-ci.org/sshaw/class2.svg?branch=master)](https://travis-ci.org/sshaw/class2)
 
@@ -26,7 +26,24 @@ This creates 3 classes: `User`, `Address`, and `Country` with the following attr
 
 Each of these classes also contain [several additional methods](#methods).
 
-Examples:
+You can also specify types:
+
+```rb
+Class2(
+  :user => {
+    :name => String,
+    :age  => Fixnum,
+    :addresses => [
+      :city, :state, :zip,  # No explicit types for these
+      :country => {
+        :name => String,
+        :code => String
+      }
+    ]
+  }
+)
+```
+After calling either one of these you can do following:
 
 ```rb
 user = User.new(
@@ -42,27 +59,65 @@ user = User.new(
   ]
 )
 
-p user.name                  # "sshaw"
-p user.addresses.size        # 3
-p user.addresses.first.city  # "LA"
+user.name                  # "sshaw"
+user.addresses.size        # 3
+user.addresses.first.city  # "LA"
+user.to_h                  # {:name => "sshaw", :age => 99, :addresses => [ { ... } ]}
 
-# Keys can be strings too
+# keys can be strings too
 country = Country.new("name" => "America", "code" => "US")
 address = Address.new(:city => "Da Bay", :state => "CA", :country => country)
 user.addresses << address
 
-p User.new(:name => "sshaw") == User.new(:name => "sshaw")  # true
+User.new(:name => "sshaw") == User.new(:name => "sshaw")  # true
 ```
+
+Unknown attributes passed to the constructor are ignored.
+
+`Class2` can derive types from instances too. This makes it easy to
+build classes for things like API responses, using the API response
+itself as the specification (best if there are no `null`s):
 
 ```rb
-Class2(:foo, :bar => :baz)
+# From JSON.parse
+# of https://api.github.com/repos/sshaw/selfie_formatter/commits
+response = [
+  {
+    "sha" => "f52f1ed9144e1f73346176ab79a61af78df1b6bd",
+    "commit" => {
+      "author"=> {
+        "name"=>"sshaw",
+        "email"=>"skye.shaw@gmail.com",
+        "date"=>"2016-06-30T03:51:00Z"
+      }
+    },
+    "comment_count": 0
 
-foo = Foo.new
-bar = Bar.new(:baz => 123)
+    # snip full response
+  }
+]
 
-p foo.to_h  # {}
-p bar.to_h  # {:baz => 123}
+Class2(
+  :commit => response.first
+)
+
+commit = Commit.new(response.first)
+commit.author.name    # "sshaw"
+commit.comment_count  # 0
+
 ```
+
+### Conversions
+
+You can use any of these or their instances in your class definitions:
+
+* `Array`
+* `Date`
+* `DateTime`
+* `Float`
+* `Hash`
+* `Integer`/`Fixnum` - either one will cause a `Fixnum` conversion
+* `TrueClass`/`FalseClass` - either one will cause a boolean conversion
 
 ### Namespaces
 
@@ -125,21 +180,22 @@ end
 User.new(:name => "sshaw").first_initial
 ```
 
-## TODO
+## Issues
 
-Plural attributes that are not collections:
-
-```rb
-:users => [ :id, :age, :foo ]
-```
-
-Should not create an array of `User`s.
+Can't use plural attributes that are not collections.
+Here we want `:users` to be an attribute but not a type
 
 ```rb
-# Maybe?
-:users => Set.new(:id, :age, :foo)
+Class2(:foo => [ :users => [ :id, :age, :foo ] ])
 ```
 
+Instead you can use a `Set`
+
+```rb
+Class2(:foo => [ :users => Set.new([ :id, :age, :foo ]) ])
+```
+
+Others, I'm sure.
 
 ## See Also
 

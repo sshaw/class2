@@ -1,14 +1,33 @@
 # coding: utf-8
 
-require "class2/version"
+require "date"
 require "active_support/core_ext/module"
 require "active_support/core_ext/string"
+
+require "class2/version"
 
 def Class2(*args)
   Class2.new(*args)
 end
 
 class Class2
+  CONVERSIONS = {
+    Array     => lambda { |v| "Array(#{v})" },
+    Date      => lambda { |v| "Date.parse(#{v})" },
+    DateTime  => lambda { |v| "DateTime.parse(#{v})" },
+    Float     => lambda { |v| "Float(#{v})" },
+    Hash      => lambda { |v| sprintf "%s.respond_to?(:to_h) ? %s.to_h : %s", v, v, v },
+    Integer   => lambda { |v| "Integer(#{v})" },
+    String    => lambda { |v| "String(#{v})" },
+    TrueClass => lambda do |v|
+      sprintf '["1", 1, 1.0, true].freeze.include?(%s.is_a?(String) ? %s.strip : %s)', v, v, v
+    end
+  }
+
+  CONVERSIONS[FalseClass] = CONVERSIONS[TrueClass]
+  CONVERSIONS[Fixnum] = CONVERSIONS[Integer]
+  CONVERSIONS.default = lambda { |v| v }
+
   class << self
     def new(*argz)
       specs = argz
@@ -35,10 +54,40 @@ class Class2
       end
     end
 
-    def make_class(namespace, name, attributes)
-      attributes = [attributes] unless attributes.is_a?(Array)
+    def split_and_normalize_attributes(attributes)
+      nested = []
+      simple = []
 
-      nested, simple = attributes.compact.partition { |e| e.is_a?(Hash) }
+      attributes = [attributes] unless attributes.is_a?(Array)
+      attributes.compact.each do |attr|
+        # Just an attribute name, no type, so use default type String
+        if !attr.is_a?(Hash)
+          simple << { attr => nil }
+          next
+        end
+
+        attr.each do |k, v|
+          if v.is_a?(Hash) || v.is_a?(Array)
+            if v.empty?
+              # If it's empty it's not a nested spec, the attributes type is a Hash or Array
+              simple << { k => v.class }
+            else
+              nested << { k => v }
+            end
+          else
+            # Type can be a class name or an instance
+            # If it's an instance, use its type
+            v = v.class unless v.is_a?(Class)
+            simple << { k => v }
+          end
+        end
+      end
+
+      [ nested, simple ]
+    end
+
+    def make_class(namespace, name, attributes)
+      nested, simple = split_and_normalize_attributes(attributes)
       nested.each do |object|
         object.each { |klass, attrs| make_class(namespace, klass, attrs) }
       end
@@ -62,21 +111,55 @@ class Class2
 
           def to_h
             hash = {}
-            (#{simple + nested.map { |n| n.keys.first }}).each do |name|
+            (#{simple.map { |n| n.keys.first } + nested.map { |n| n.keys.first }}).each do |name|
               hash[name] = public_send(name)
-              hash[name] = hash[name].to_h if hash[name].respond_to?(:to_h)
+              next unless hash[name].respond_to?(:to_h)
+
+              errors = [ ArgumentError, TypeError ]
+              # Seems needlessly complicated, why doesn't Hash() do some of this?
+              begin
+                hash[name] = hash[name].to_h
+                # to_h is dependent on its contents
+              rescue *errors
+                next unless hash[name].is_a?(Enumerable)
+                hash[name] = hash[name].map do |e|
+                  begin
+                    e.respond_to?(:to_h) ? e.to_h : e
+                  rescue *errors
+                    # Give up
+                  end
+                end
+              end
             end
 
             hash
           end
+
+          def __nested_attributes
+            #{nested.map { |n| n.keys.first.to_sym }}.freeze
+          end
+
+          private :__nested_attributes
         CODE
 
-        simple.each { |method| attr_accessor method }
+        simple.each do |cfg|
+          method, type = cfg.first
+          method = method.to_s.underscore
+
+          attr_reader method
+
+          class_eval <<-CODE
+            def #{method}=(v)
+              @#{method} = #{CONVERSIONS[type]["v"]}
+            end
+          CODE
+        end
 
         nested.map { |n| n.keys.first }.each do |method, _|
+          method = method.to_s.underscore
+
           attr_writer method
 
-          method = method.to_s
           retval = method == method.pluralize ? "[]" : "#{method.classify}.new"
           class_eval <<-CODE
             def #{method}
@@ -89,17 +172,18 @@ class Class2
 
         def assign_attributes(attributes)
           attributes.each do |key, value|
-            if value.is_a?(Hash) || value.is_a?(Array)
+            if __nested_attributes.include?(key.to_sym) && (value.is_a?(Hash) || value.is_a?(Array))
               name  = key.to_s.classify
 
               # Only look in our namespace to prevent unwanted lookup
               next unless self.class.parent.const_defined?(name)
-              klass = self.class.parent.const_get(name)
 
+              klass = self.class.parent.const_get(name)
               value = value.is_a?(Hash) ? klass.new(value) : value.map { |v| klass.new(v) }
             end
 
-            public_send("#{key}=", value)
+            method = "#{key}="
+            public_send(method, value) if respond_to?(method)
           end
         end
       end

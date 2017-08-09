@@ -26,7 +26,7 @@ This creates 3 classes: `User`, `Address`, and `Country` with the following attr
 
 Each of these classes also contain [several additional methods](#methods).
 
-Example:
+Examples:
 
 ```rb
 user = User.new(
@@ -52,10 +52,16 @@ address = Address.new(:city => "Da Bay", :state => "CA", :country => country)
 user.addresses << address
 
 p User.new(:name => "sshaw") == User.new(:name => "sshaw")  # true
+```
 
+```rb
 Class2(:foo, :bar => :baz)
-Foo.new
-Bar.new(:baz => 123)
+
+foo = Foo.new
+bar = Bar.new(:baz => 123)
+
+p foo.to_h  # {}
+p bar.to_h  # {:baz => 123}
 ```
 
 ### Namespaces
@@ -82,9 +88,13 @@ New::Namespace::User.new(:name => "sshaw")
 
 `Class2` uses
 [`String#classify`](http://api.rubyonrails.org/classes/String.html#method-i-classify)
-to turn keys into class names. `:foo` will be `Foo`, `:foo_bars` will
-be `FooBar`.  It also uses it to turn plural attribute names into
-singular classes. An `:addresses` attribute will result in a class named
+to turn keys into class names: `:foo` will be `Foo`, `:foo_bars` will
+be `FooBar`.
+
+Plural keys with an array value are always assumed to be accessors for
+a collection and will default to returning an `Array`. `#classify` is
+used to derive the class names from the plural attribute names. An
+`:addresses` key with an `Array` value will result in a class named
 `Address` being created.
 
 Plurality is determined by [`String#pluralize`](http://api.rubyonrails.org/classes/String.html#method-i-pluralize).
@@ -114,6 +124,22 @@ end
 
 User.new(:name => "sshaw").first_initial
 ```
+
+## TODO
+
+Plural attributes that are not collections:
+
+```rb
+:users => [ :id, :age, :foo ]
+```
+
+Should not create an array of `User`s.
+
+```rb
+# Maybe?
+:users => Set.new(:id, :age, :foo)
+```
+
 
 ## See Also
 

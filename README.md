@@ -24,7 +24,7 @@ This creates 3 classes: `User`, `Address`, and `Country` with the following attr
 * `Address`: city, state, zip, country
 * `Country`: name, code
 
-Each of these classes also contain [several additional methods](#methods).
+Each of these classes are created with [several additional methods](#methods).
 
 You can also specify types:
 
@@ -43,7 +43,9 @@ Class2(
   }
 )
 ```
-After calling either one of these you can do following:
+Attributes without types are treated as is.
+
+After calling either one of the above you can do following:
 
 ```rb
 user = User.new(
@@ -109,7 +111,7 @@ commit.comment_count  # 0
 
 ### Conversions
 
-You can use any of these or their instances in your class definitions:
+You can use any of these classes or their instances in your class definitions:
 
 * `Array`
 * `Date`
@@ -118,6 +120,9 @@ You can use any of these or their instances in your class definitions:
 * `Hash`
 * `Integer`/`Fixnum` - either one will cause a `Fixnum` conversion
 * `TrueClass`/`FalseClass` - either one will cause a boolean conversion
+
+Custom conversions are possible, just add the conversion to
+[`Class2::CONVERSIONS`](https://github.com/sshaw/class2/blob/517239afc76a4d80677e169958a1dc7836726659/lib/class2.rb#L14-L29)
 
 ### Namespaces
 

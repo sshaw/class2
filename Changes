@@ -1,4 +1,5 @@
-2017-08-XX  v0.0.2
+2017-08-10  v0.0.2
 --------------------
 * Add support for types
 * Bug fix: don't attempt to create invalid method names
+* Bug fix: don't assume constructor arg is a Hash

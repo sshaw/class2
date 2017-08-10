@@ -208,7 +208,8 @@ user = { :name => "sshaw", :hobbies => ["screen-staring", "other thangz"] }
 Class2(:user => user)
 ```
 
-Will fail because of `:hobbies`' value. It must be converted to:
+Won't work when creating instances because of `:hobbies`' value.  To
+properly create instances it must be converted to:
 
 ```rb
 user = { :name => "sshaw", :hobbies => [] }

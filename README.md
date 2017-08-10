@@ -43,9 +43,10 @@ Class2(
   }
 )
 ```
-Attributes without types are treated as is.
+An attempt is made to convert the attribute when it's passed to the constructor
+or set via its accessor. Attributes without types are treated as is. Unknown attributes are ignored.
 
-After calling either one of the above you can do following:
+After calling either one of the above you can do the following:
 
 ```rb
 user = User.new(
@@ -73,8 +74,6 @@ user.addresses << address
 
 User.new(:name => "sshaw") == User.new(:name => "sshaw")  # true
 ```
-
-Unknown attributes passed to the constructor are ignored.
 
 `Class2` can create classes with typed attributes from example hashes.
 This makes it possible to build classes for things like API responses, using the API response

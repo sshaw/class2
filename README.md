@@ -76,9 +76,9 @@ User.new(:name => "sshaw") == User.new(:name => "sshaw")  # true
 
 Unknown attributes passed to the constructor are ignored.
 
-`Class2` can derive types from instances too. This makes it easy to
-build classes for things like API responses, using the API response
-itself as the specification (best if there are no `null`s):
+`Class2` can create classes with typed attributes from example hashes.
+This makes it possible to build classes for things like API responses, using the API response
+itself -or a slightly modified version, see [Issues](#issues)- as the specification:
 
 ```rb
 # From JSON.parse
@@ -106,7 +106,6 @@ Class2(
 commit = Commit.new(response.first)
 commit.author.name    # "sshaw"
 commit.comment_count  # 0
-
 ```
 
 ### Conversions
@@ -199,6 +198,24 @@ Instead you can use a `Set`
 ```rb
 Class2(:foo => [ :users => Set.new([ :id, :age, :foo ]) ])
 ```
+
+---
+
+Building classes from example hashes will fail for arrays of scalars. For example:
+
+```rb
+user = { :name => "sshaw", :hobbies => ["screen-staring", "other thangz"] }
+Class2(:user => user)
+```
+
+Will fail because of `:hobbies`' value. It must be converted to:
+
+```rb
+user = { :name => "sshaw", :hobbies => [] }
+Class2(:user => user)
+```
+
+---
 
 Others, I'm sure.
 

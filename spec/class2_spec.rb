@@ -96,6 +96,10 @@ describe Class2 do
 
       it "does not require any arguments" do
         User.new
+      end
+
+      it "silently ignores arguments that are not a Hash" do
+        User.new "foo"
         User.new nil
       end
 

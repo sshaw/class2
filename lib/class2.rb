@@ -92,9 +92,12 @@ class Class2
         object.each { |klass, attrs| make_class(namespace, klass, attrs) }
       end
 
+      make_method_name = lambda { |x| x.to_s.gsub(/[^\w]+/, "_") } # good enough
+
       klass = Class.new do
         def initialize(attributes = nil)
-          assign_attributes(attributes || {})
+          return unless attributes.is_a?(Hash)
+          assign_attributes(attributes)
         end
 
         class_eval <<-CODE
@@ -144,7 +147,7 @@ class Class2
 
         simple.each do |cfg|
           method, type = cfg.first
-          method = method.to_s.underscore
+          method = make_method_name[method]
 
           attr_reader method
 
@@ -156,8 +159,7 @@ class Class2
         end
 
         nested.map { |n| n.keys.first }.each do |method, _|
-          method = method.to_s.underscore
-
+          method = make_method_name[method]
           attr_writer method
 
           retval = method == method.pluralize ? "[]" : "#{method.classify}.new"
@@ -172,8 +174,10 @@ class Class2
 
         def assign_attributes(attributes)
           attributes.each do |key, value|
-            if __nested_attributes.include?(key.to_sym) && (value.is_a?(Hash) || value.is_a?(Array))
-              name  = key.to_s.classify
+            if __nested_attributes.include?(key.respond_to?(:to_sym) ? key.to_sym : key) &&
+               (value.is_a?(Hash) || value.is_a?(Array))
+
+              name = key.to_s.classify
 
               # Only look in our namespace to prevent unwanted lookup
               next unless self.class.parent.const_defined?(name)

@@ -188,7 +188,7 @@ User.new(:name => "sshaw").first_initial
 ## Issues
 
 Can't use plural attributes that are not collections.
-Here we want `:users` to be an attribute but not a type
+Here we want `:users` to be an attribute, not a type:
 
 ```rb
 Class2(:foo => [ :users => [ :id, :age, :foo ] ])

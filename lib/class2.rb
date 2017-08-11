@@ -6,8 +6,8 @@ require "active_support/core_ext/string"
 
 require "class2/version"
 
-def Class2(*args)
-  Class2.new(*args)
+def Class2(*args, &block)
+  Class2.new(*args, &block)
 end
 
 class Class2
@@ -29,7 +29,7 @@ class Class2
   CONVERSIONS.default = lambda { |v| v }
 
   class << self
-    def new(*argz)
+    def new(*argz, &block)
       specs = argz
       namespace = Object
 
@@ -39,7 +39,7 @@ class Class2
 
       specs.each do |spec|
         spec = [spec] unless spec.respond_to?(:each)
-        spec.each { |klass, attributes| make_class(namespace, klass, attributes) }
+        spec.each { |klass, attributes| make_class(namespace, klass, attributes, block) }
       end
 
       nil
@@ -60,7 +60,7 @@ class Class2
 
       attributes = [attributes] unless attributes.is_a?(Array)
       attributes.compact.each do |attr|
-        # Just an attribute name, no type, so use default type String
+        # Just an attribute name, no type
         if !attr.is_a?(Hash)
           simple << { attr => nil }
           next
@@ -86,10 +86,10 @@ class Class2
       [ nested, simple ]
     end
 
-    def make_class(namespace, name, attributes)
+    def make_class(namespace, name, attributes, block)
       nested, simple = split_and_normalize_attributes(attributes)
       nested.each do |object|
-        object.each { |klass, attrs| make_class(namespace, klass, attrs) }
+        object.each { |klass, attrs| make_class(namespace, klass, attrs, block) }
       end
 
       make_method_name = lambda { |x| x.to_s.gsub(/[^\w]+/, "_") } # good enough
@@ -129,7 +129,7 @@ class Class2
                   begin
                     e.respond_to?(:to_h) ? e.to_h : e
                   rescue *errors
-                    # Give up
+                    e
                   end
                 end
               end
@@ -169,6 +169,9 @@ class Class2
             end
           CODE
         end
+
+        # Do this last to allow for overriding the methods we define
+        class_eval(&block) unless block.nil?
 
         private
 

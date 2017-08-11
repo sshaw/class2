@@ -167,7 +167,7 @@ Classes created by `Class2` will have:
 * `#eql?` and `#==`
 * `#hash`
 
-#### Custom Methods
+#### Custom Methods and Including Modules
 
 Just open up the class and write them:
 
@@ -181,6 +181,18 @@ class User
 end
 
 User.new(:name => "sshaw").first_initial
+```
+
+`Class2` does accept a block whose contents will be added to
+*every* class defined within the call:
+
+```rb
+Class2 :user => :name, :address => :city do
+  extend ActiveModel::Naming
+end
+
+User.new.model_name.route_key
+Address.new.model_name.route_key
 ```
 
 ## Issues

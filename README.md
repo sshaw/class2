@@ -173,7 +173,7 @@ Also see [Customizations](#customizations).
 
 ### Customizations
 
-To add methods or include Modules just open up the class and write or include them:
+To add methods or include modules just open up the class and write or include them:
 
 ```rb
 Class2 :user => :name
@@ -204,12 +204,14 @@ Address.new.model_name.route_key
 
 ## See Also
 
-The Perl modules that served as the inspiration:
+The Perl modules that served as inspiration:
 
 * [`MooseX::NestedAttributesConstructor`](https://github.com/sshaw/MooseX-NestedAttributesConstructor)
 * [`Class::Tiny`](https://metacpan.org/pod/Class::Tiny)
-* [`Moose`](https://metacpan.org/pod/Moose) and [`Moo`](https://metacpan.org/pod/Moo)
+* [`Moose`](https://metacpan.org/pod/Moose), [`Moo`](https://metacpan.org/pod/Moo), and [`Mouse`](https://metacpan.org/pod/Mouse)
 * [`Type::Tiny`](https://metacpan.org/pod/Type::Tiny)
+* [`MooseX::Types`](https://metacpan.org/pod/MooseX::Types)
+* [`Rubyish`](https://metacpan.org/pod/Rubyish)
 
 Surely others I cannot remember...
 

@@ -210,4 +210,25 @@ class Class2
       namespace.const_set(name.to_s.classify, klass)
     end
   end
+
+  #
+  # By default unknown arguments are ignored. <code>include<code>ing this will
+  # cause an ArgumentError to be raised if an attribute is unknown:
+  #
+  module StrictConstructor
+    def self.included(klass)
+      klass.class_eval do
+        def initialize(attributes = nil)
+          return unless attributes.is_a?(Hash)
+          assign_attributes(attributes)
+
+          accepted = to_h.keys
+          attributes.each do |name, _|
+            next if accepted.include?(name.respond_to?(:to_sym) ? name.to_sym : name)
+            raise ArgumentError, "unknown attribute: #{name}"
+          end
+        end
+      end
+    end
+  end
 end

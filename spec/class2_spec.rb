@@ -349,4 +349,23 @@ describe Class2 do
       end
     end
   end
+
+  describe "when Class2::StrictConstructor is included" do
+    before do
+      Class2(:foo => :bar) do
+        include Class2::StrictConstructor
+      end
+    end
+
+    after { delete_constant("Foo") }
+
+    it "creates a constructor that accepts know attributes" do
+      Foo.new(:bar => 123).bar.must_equal 123
+      Foo.new("bar" => 123).bar.must_equal 123
+    end
+
+    it "creates a constructor that raises an ArgumentError for unknown attributes" do
+      lambda { Foo.new(:baz => 123) }.must_raise ArgumentError, "unknown attribute: baz"
+    end
+  end
 end

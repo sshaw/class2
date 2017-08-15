@@ -7,15 +7,13 @@ Easily create hierarchies of classes that support nested attributes, type conver
 ## Usage
 
 ```rb
-Class2(
-  :user => [
-    :name, :age,
-    :addresses => [
-      :city, :state, :zip,
-      :country => [ :name, :code ]
-    ]
-  ]
-)
+Class2 :user => [
+         :name, :age,
+         :addresses => [
+           :city, :state, :zip,
+           :country => [ :name, :code ]
+         ]
+       ]
 ```
 
 This creates 3 classes: `User`, `Address`, and `Country` with the following attribute accessors:
@@ -29,22 +27,20 @@ Each of these classes are created with [several additional methods](#methods).
 You can also specify types:
 
 ```rb
-Class2(
-  :user => {
-    :name => String,
-    :age  => Fixnum,
-    :addresses => [
-      :city, :state, :zip,  # No explicit types for these
-      :country => {
-        :name => String,
-        :code => String
-      }
-    ]
-  }
-)
+Class2 :user => {
+         :name => String,
+         :age  => Fixnum,
+         :addresses => [
+           :city, :state, :zip,  # No explicit types for these
+           :country => {
+             :name => String,
+             :code => String
+           }
+         ]
+       }
 ```
-An attempt is made to convert the attribute when it's passed to the constructor
-or set via its accessor. Attributes without types are treated as is. Unknown attributes are ignored.
+An attempt is made to convert the attribute's type when a value is passed to the constructor
+or set via its accessor. Attributes without types are treated as is.
 
 After calling either one of the above you can do the following:
 
@@ -77,7 +73,7 @@ User.new(:name => "sshaw") == User.new(:name => "sshaw")  # true
 
 `Class2` can create classes with typed attributes from example hashes.
 This makes it possible to build classes for things like API responses, using the API response
-itself -or a slightly modified version, see [Issues](#issues)- as the specification:
+itself as the specification:
 
 ```rb
 # From JSON.parse
@@ -98,9 +94,7 @@ response = [
   }
 ]
 
-Class2(
-  :commit => response.first
-)
+Class2 :commit => response.first
 
 commit = Commit.new(response.first)
 commit.author.name    # "sshaw"
@@ -127,17 +121,11 @@ Custom conversions are possible, just add the conversion to
 `Class2` can use an exiting namespace or create a new one:
 
 ```rb
-Class2(
-  My::Namespace,
-  :user => %i[name age]
-)
+Class2 My::Namespace, :user => %i[name age]
 
 My::Namespace::User.new(:name => "sshaw")
 
-Class2(
-  "New::Namespace",
-  :user => %i[name age]
-)
+Class2 "New::Namespace", :user => %i[name age]
 
 New::Namespace::User.new(:name => "sshaw")
 ```
@@ -167,14 +155,32 @@ Classes created by `Class2` will have:
 * `#eql?` and `#==`
 * `#hash`
 
-#### Custom Methods and Including Modules
+### Constructor
 
-Just open up the class and write them:
+The default constructor ignores unknown attributes.
+If you prefer to raise an exception include `Class2::StrictConstructor`:
 
 ```rb
-Class2(:user => :name)
+Class2 :user => %w[id name age] do
+  include Class2::StrictConstructor
+end
+```
+
+Now an `ArgumentError` will be raised if anything but `id`, `name`, or
+`age` are passed in.
+
+Also see [Customizations](#customizations).
+
+### Customizations
+
+To add methods or include Modules just open up the class and write or include them:
+
+```rb
+Class2 :user => :name
 
 class User
+  include SomeModule
+
   def first_initial
     name[0] if name
   end
@@ -188,6 +194,7 @@ User.new(:name => "sshaw").first_initial
 
 ```rb
 Class2 :user => :name, :address => :city do
+  include ActiveModel::Conversion
   extend ActiveModel::Naming
 end
 
@@ -195,45 +202,16 @@ User.new.model_name.route_key
 Address.new.model_name.route_key
 ```
 
-## Issues
-
-Can't use plural attributes that are not collections.
-Here we want `:users` to be an attribute, not a type:
-
-```rb
-Class2(:foo => [ :users => [ :id, :age, :foo ] ])
-```
-
-Instead you can use a `Set`
-
-```rb
-Class2(:foo => [ :users => Set.new([ :id, :age, :foo ]) ])
-```
-
----
-
-Building classes from example hashes will fail for arrays of scalars. For example:
-
-```rb
-user = { :name => "sshaw", :hobbies => ["screen-staring", "other thangz"] }
-Class2(:user => user)
-```
-
-Won't work when creating instances because of `:hobbies`' value.  To
-properly create instances it must be converted to:
-
-```rb
-user = { :name => "sshaw", :hobbies => [] }
-Class2(:user => user)
-```
-
----
-
-Others, I'm sure.
-
 ## See Also
 
-The Perl module that served as the inspiration: [`MooseX::NestedAttributesConstructor`](https://github.com/sshaw/MooseX-NestedAttributesConstructor).
+The Perl modules that served as the inspiration:
+
+* [`MooseX::NestedAttributesConstructor`](https://github.com/sshaw/MooseX-NestedAttributesConstructor)
+* [`Class::Tiny`](https://metacpan.org/pod/Class::Tiny)
+* [`Moose`](https://metacpan.org/pod/Moose) and [`Moo`](https://metacpan.org/pod/Moo)
+* [`Type::Tiny`](https://metacpan.org/pod/Type::Tiny)
+
+Surely others I cannot remember...
 
 ## Author
 

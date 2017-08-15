@@ -277,6 +277,14 @@ describe Class2 do
         all = All.new(:string => 123)
         all.string.must_equal "123"
       end
+
+      it "defaults to an empty Array for array types" do
+        All.new.array.must_equal []
+      end
+
+      it "defaults to an empty Hash for hash types" do
+        All.new.hash.must_equal Hash.new
+      end
     end
 
     describe "using instances for types" do
@@ -287,6 +295,8 @@ describe Class2 do
           :user => {
             :id => 1,
             :name => "sshaw",
+            :foo => {},
+            :bar => [],
             :addresses => [
               { :city => "LA",  :lat => 75.12345 },
               { :city => "NYC", :lat => 75.12345 }
@@ -328,6 +338,14 @@ describe Class2 do
         user.name.must_equal "123"
         user.addresses.first.must_be_instance_of(Address)
         user.addresses.first.lat.must_equal 75.0
+      end
+
+      it "defaults to an empty Array for array types" do
+        User.new.foo.must_equal Hash.new
+      end
+
+      it "defaults to an empty Hash for hash types" do
+        User.new.bar.must_equal []
       end
     end
   end

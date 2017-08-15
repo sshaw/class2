@@ -1,3 +1,9 @@
+2017-XX-XX  v0.1.0
+--------------------
+* Add support for blocks
+* Add Class2::StrictConstructor
+* Bug fix: to_h conversion failure caused element to be skipped
+
 2017-08-10  v0.0.2
 --------------------
 * Add support for types

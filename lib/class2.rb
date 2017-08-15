@@ -149,9 +149,21 @@ class Class2
           method, type = cfg.first
           method = make_method_name[method]
 
-          attr_reader method
+          # Use Enum somehow?
+          retval = if type == Array || type.is_a?(Array)
+                     "[]"
+                   elsif type == Hash || type.is_a?(Hash)
+                     "{}"
+                   else
+                     "nil"
+                   end
 
           class_eval <<-CODE
+            def #{method}
+              @#{method} = #{retval} unless defined? @#{method}
+              @#{method}
+            end
+
             def #{method}=(v)
               @#{method} = #{CONVERSIONS[type]["v"]}
             end

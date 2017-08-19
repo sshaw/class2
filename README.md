@@ -1,13 +1,13 @@
 # Class2
 
-Easily create hierarchies of classes that support nested attributes, type conversion, equality, and more.
+Easily create class hierarchies that support nested attributes, type conversion, equality, and more.
 
 [![Build Status](https://travis-ci.org/sshaw/class2.svg?branch=master)](https://travis-ci.org/sshaw/class2)
 
 ## Usage
 
 ```rb
-Class2 :user => [
+class2 :user => [
          :name, :age,
          :addresses => [
            :city, :state, :zip,
@@ -27,7 +27,7 @@ Each of these classes are created with [several additional methods](#methods).
 You can also specify types:
 
 ```rb
-Class2 :user => {
+class2 :user => {
          :name => String,
          :age  => Fixnum,
          :addresses => [
@@ -94,7 +94,7 @@ response = [
   }
 ]
 
-Class2 :commit => response.first
+class2 :commit => response.first
 
 commit = Commit.new(response.first)
 commit.author.name    # "sshaw"
@@ -121,11 +121,11 @@ Custom conversions are possible, just add the conversion to
 `Class2` can use an exiting namespace or create a new one:
 
 ```rb
-Class2 My::Namespace, :user => %i[name age]
+class2 My::Namespace, :user => %i[name age]
 
 My::Namespace::User.new(:name => "sshaw")
 
-Class2 "New::Namespace", :user => %i[name age]
+class2 "New::Namespace", :user => %i[name age]
 
 New::Namespace::User.new(:name => "sshaw")
 ```
@@ -161,7 +161,7 @@ The default constructor ignores unknown attributes.
 If you prefer to raise an exception include `Class2::StrictConstructor`:
 
 ```rb
-Class2 :user => %w[id name age] do
+class2 :user => %w[id name age] do
   include Class2::StrictConstructor
 end
 ```
@@ -176,7 +176,7 @@ Also see [Customizations](#customizations).
 To add methods or include modules just open up the class and write or include them:
 
 ```rb
-Class2 :user => :name
+class2 :user => :name
 
 class User
   include SomeModule
@@ -193,7 +193,7 @@ User.new(:name => "sshaw").first_initial
 *every* class defined within the call:
 
 ```rb
-Class2 :user => :name, :address => :city do
+class2 :user => :name, :address => :city do
   include ActiveModel::Conversion
   extend ActiveModel::Naming
 end
@@ -201,6 +201,16 @@ end
 User.new.model_name.route_key
 Address.new.model_name.route_key
 ```
+
+### Class2 API
+
+3 methods are provided. Pick the one that suites your taste:
+
+* `class2`
+* `Class2`
+* `Class2.new`
+
+They all create classes the same way. They all return `nil`.
 
 ## See Also
 

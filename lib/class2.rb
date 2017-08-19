@@ -10,6 +10,8 @@ def Class2(*args, &block)
   Class2.new(*args, &block)
 end
 
+alias :class2 :Class2
+
 class Class2
   CONVERSIONS = {
     Array     => lambda { |v| "Array(#{v})" },

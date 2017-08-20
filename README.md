@@ -1,4 +1,4 @@
-# Class2
+# class2
 
 Easily create class hierarchies that support nested attributes, type conversion, equality, and more.
 
@@ -22,9 +22,10 @@ This creates 3 classes: `User`, `Address`, and `Country` with the following attr
 * `Address`: city, state, zip, country
 * `Country`: name, code
 
-Each of these classes are created with [several additional methods](#methods).
 
-You can also specify types:
+Each of these classes are created with
+[several additional methods](#methods).  You can also specify types
+(or [namespaces](#namespaces)):
 
 ```rb
 class2 :user => {
@@ -39,8 +40,8 @@ class2 :user => {
          ]
        }
 ```
-An attempt is made to convert the attribute's type when a value is passed to the constructor
-or set via its accessor. Attributes without types are treated as is.
+
+Attributes without types are treated as is.
 
 After calling either one of the above you can do the following:
 
@@ -71,8 +72,8 @@ user.addresses << address
 User.new(:name => "sshaw") == User.new(:name => "sshaw")  # true
 ```
 
-`Class2` can create classes with typed attributes from example hashes.
-This makes it possible to build classes for things like API responses, using the API response
+`class2` can create classes with typed attributes from example hashes.
+This makes it possible to build classes for things like API responses using the API response
 itself as the specification:
 
 ```rb
@@ -101,7 +102,34 @@ commit.author.name    # "sshaw"
 commit.comment_count  # 0
 ```
 
-### Conversions
+### class2 API
+3 methods are provided. Pick the one that suites your style and/or requirements:
+
+* `class2`
+* `Class2`
+* `Class2.new`
+
+They all create classes the same way. They all return `nil`.
+
+#### Naming
+
+`class2` uses
+[`String#classify`](http://api.rubyonrails.org/classes/String.html#method-i-classify)
+to turn keys into class names: `:foo` will be `Foo`, `:foo_bars` will
+be `FooBar`.
+
+Plural keys with an array value are always assumed to be accessors for
+a collection and will default to returning an `Array`. `#classify` is
+used to derive the class names from the plural attribute names. An
+`:addresses` key with an `Array` value will result in a class named
+`Address` being created.
+
+Plurality is determined by [`String#pluralize`](http://api.rubyonrails.org/classes/String.html#method-i-pluralize).
+
+#### Conversions
+
+An attempt is made to convert the attribute's type when a value is passed to the constructor
+or set via its accessor.
 
 You can use any of these classes or their instances in your class definitions:
 
@@ -116,38 +144,25 @@ You can use any of these classes or their instances in your class definitions:
 Custom conversions are possible, just add the conversion to
 [`Class2::CONVERSIONS`](https://github.com/sshaw/class2/blob/517239afc76a4d80677e169958a1dc7836726659/lib/class2.rb#L14-L29)
 
-### Namespaces
+#### Namespaces
 
-`Class2` can use an exiting namespace or create a new one:
+`class2` can use an exiting namespace or create a new one:
 
 ```rb
-class2 My::Namespace, :user => %i[name age]
+class2 My::Namespace,
+       :user => %i[name age]
 
 My::Namespace::User.new(:name => "sshaw")
 
-class2 "New::Namespace", :user => %i[name age]
+class2 "New::Namespace",
+       :user => %i[name age]
 
 New::Namespace::User.new(:name => "sshaw")
 ```
 
-### Naming
+#### Methods
 
-`Class2` uses
-[`String#classify`](http://api.rubyonrails.org/classes/String.html#method-i-classify)
-to turn keys into class names: `:foo` will be `Foo`, `:foo_bars` will
-be `FooBar`.
-
-Plural keys with an array value are always assumed to be accessors for
-a collection and will default to returning an `Array`. `#classify` is
-used to derive the class names from the plural attribute names. An
-`:addresses` key with an `Array` value will result in a class named
-`Address` being created.
-
-Plurality is determined by [`String#pluralize`](http://api.rubyonrails.org/classes/String.html#method-i-pluralize).
-
-### Methods
-
-Classes created by `Class2` will have:
+Classes created by `class2` will have:
 
 * A constructor that accepts a nested attribute hash
 * Attribute readers and writers
@@ -155,23 +170,7 @@ Classes created by `Class2` will have:
 * `#eql?` and `#==`
 * `#hash`
 
-### Constructor
-
-The default constructor ignores unknown attributes.
-If you prefer to raise an exception include `Class2::StrictConstructor`:
-
-```rb
-class2 :user => %w[id name age] do
-  include Class2::StrictConstructor
-end
-```
-
-Now an `ArgumentError` will be raised if anything but `id`, `name`, or
-`age` are passed in.
-
-Also see [Customizations](#customizations).
-
-### Customizations
+#### Customizations
 
 To add methods or include modules just open up the class and write or include them:
 
@@ -189,7 +188,7 @@ end
 User.new(:name => "sshaw").first_initial
 ```
 
-`Class2` does accept a block whose contents will be added to
+`class2` does accept a block whose contents will be added to
 *every* class defined within the call:
 
 ```rb
@@ -202,15 +201,21 @@ User.new.model_name.route_key
 Address.new.model_name.route_key
 ```
 
-### Class2 API
+#### Constructor
 
-3 methods are provided. Pick the one that suites your taste:
+The default constructor ignores unknown attributes.
+If you prefer to raise an exception include `Class2::StrictConstructor`:
 
-* `class2`
-* `Class2`
-* `Class2.new`
+```rb
+class2 :user => %w[id name age] do
+  include Class2::StrictConstructor
+end
+```
 
-They all create classes the same way. They all return `nil`.
+Now an `ArgumentError` will be raised if anything but `id`, `name`, or
+`age` are passed in.
+
+Also see [Customizations](#customizations).
 
 ## See Also
 

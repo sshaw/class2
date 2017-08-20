@@ -103,13 +103,17 @@ commit.comment_count  # 0
 ```
 
 ### class2 API
-3 methods are provided. Pick the one that suites your style and/or requirements:
 
-* `class2`
-* `Class2`
+The are 3 ways to use class2. Pick the one that suites your style and/or requirements:
+
+* `class2()`
+* `Class2()`
 * `Class2.new`
 
 They all create classes the same way. They all return `nil`.
+
+To control the creation of the top-level methods, see the
+[`CLASS2_NO_EXPORT` environment variable](https://github.com/sshaw/class2/blob/a7ebe022b48db33d532cc483b0e036e4ec7d2e66/lib/class2.rb#L11-L23).
 
 #### Naming
 

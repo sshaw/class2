@@ -6,11 +6,21 @@ require "active_support/core_ext/string"
 
 require "class2/version"
 
-def Class2(*args, &block)
-  Class2.new(*args, &block)
-end
+no_export = ENV["CLASS2_NO_EXPORT"]
 
-alias :class2 :Class2
+unless no_export == "1"
+  unless no_export == "Class2"
+    def Class2(*args, &block)
+      Class2.new(*args, &block)
+    end
+  end
+
+  unless no_export == "class2"
+    def class2(*args, &block)
+      Class2.new(*args, &block)
+    end
+  end
+end
 
 class Class2
   CONVERSIONS = {

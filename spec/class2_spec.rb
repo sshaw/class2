@@ -66,6 +66,30 @@ describe Class2 do
       user1.wont_equal "foo"
     end
 
+    it "creates a to_h method" do
+      user = User.new(:id => 1, :name => "sshaw", :addresses => [ :city => "NYC" ])
+      user.to_h.must_equal({
+        :id => 1,
+        :name => "sshaw",
+        :addresses => [
+          :city => "NYC",
+          :state => nil,
+          :zip => nil,
+          :country => {
+            :name => nil,
+            :code => nil
+          }
+        ]
+      })
+
+      user.name = user.addresses = nil
+      user.to_h.must_equal({
+        :id => 1,
+        :name => nil,
+        :addresses => []
+      })
+    end
+
     describe "attributes that accept an Array" do
       it "returns an Array by default" do
         User.new.addresses.must_equal []

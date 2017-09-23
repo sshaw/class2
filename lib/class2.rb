@@ -127,17 +127,20 @@ class Class2
           def to_h
             hash = {}
             (#{simple.map { |n| n.keys.first } + nested.map { |n| n.keys.first }}).each do |name|
-              hash[name] = public_send(name)
-              next unless hash[name].respond_to?(:to_h)
+              hash[name] = v = public_send(name)
+              # Don't turn nil into a Hash
+              next if v.nil? || !v.respond_to?(:to_h)
+              # Don't turn empty Arrays into a Hash
+              next if v.is_a?(Array) && v.empty?
 
               errors = [ ArgumentError, TypeError ]
               # Seems needlessly complicated, why doesn't Hash() do some of this?
               begin
-                hash[name] = hash[name].to_h
+                hash[name] = v.to_h
                 # to_h is dependent on its contents
               rescue *errors
-                next unless hash[name].is_a?(Enumerable)
-                hash[name] = hash[name].map do |e|
+                next unless v.is_a?(Enumerable)
+                hash[name] = v.map do |e|
                   begin
                     e.respond_to?(:to_h) ? e.to_h : e
                   rescue *errors

@@ -72,7 +72,7 @@ user.addresses << address
 User.new(:name => "sshaw") == User.new(:name => "sshaw")  # true
 ```
 
-`class2` can create classes with typed attributes from example hashes.
+`class2` can create classes with typed attributes from example hashes (with some caveats).
 This makes it possible to build classes for things like API responses using the API response
 itself as the specification:
 

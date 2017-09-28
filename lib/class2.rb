@@ -62,7 +62,9 @@ class Class2
     def create_namespace(str)
       str.split("::").inject(Object) do |parent, child|
         # empty? to handle "::Namespace"
-        child.empty? ? parent : parent.const_set(child, Module.new)
+        child.empty? ? parent : parent.const_defined?(child) ?
+                                  # With 2.1 we can just say Object.const_defined?(str) but keep this around for now.
+                                  parent.const_get(child) : parent.const_set(child, Module.new)
       end
     end
 

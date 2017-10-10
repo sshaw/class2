@@ -108,6 +108,9 @@ class Class2
 
       make_method_name = lambda { |x| x.to_s.gsub(/[^\w]+/, "_") } # good enough
 
+      name = name.to_s.classify
+      return if namespace.const_defined?(name)
+
       klass = Class.new do
         def initialize(attributes = nil)
           return unless attributes.is_a?(Hash)
@@ -224,7 +227,7 @@ class Class2
         end
       end
 
-      namespace.const_set(name.to_s.classify, klass)
+      namespace.const_set(name, klass) unless namespace.const_defined?(name)
     end
   end
 

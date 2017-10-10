@@ -1,3 +1,8 @@
+2017-09-28  v0.2.3
+--------------------
+* Bug fix: don't try to convert to Float, Fixnum, Date, DateTime when nil
+* Bug fix: more constant checking before creating
+
 2017-09-28  v0.2.2
 --------------------
 * Bug fix: check constant existance before creating

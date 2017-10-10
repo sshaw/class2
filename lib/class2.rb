@@ -25,11 +25,11 @@ end
 class Class2
   CONVERSIONS = {
     Array     => lambda { |v| "Array(#{v})" },
-    Date      => lambda { |v| "Date.parse(#{v})" },
-    DateTime  => lambda { |v| "DateTime.parse(#{v})" },
-    Float     => lambda { |v| "Float(#{v})" },
+    Date      => lambda { |v| "#{v} && Date.parse(#{v})" },
+    DateTime  => lambda { |v| "#{v} && DateTime.parse(#{v})" },
+    Float     => lambda { |v| "#{v} && Float(#{v})" },
     Hash      => lambda { |v| sprintf "%s.respond_to?(:to_h) ? %s.to_h : %s", v, v, v },
-    Integer   => lambda { |v| "Integer(#{v})" },
+    Integer   => lambda { |v| "#{v} && Integer(#{v})" },
     String    => lambda { |v| "String(#{v})" },
     TrueClass => lambda do |v|
       sprintf '["1", 1, 1.0, true].freeze.include?(%s.is_a?(String) ? %s.strip : %s)', v, v, v

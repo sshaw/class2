@@ -273,10 +273,18 @@ describe Class2 do
         all.date.must_equal Date.parse("2017-01-01")
       end
 
+      it "does not try to convert nil to Date" do
+        All.new(:date => nil).date.must_be_nil
+      end
+
       it "converts to DateTime" do
         time = "2017-01-01T01:02:03"
         all = All.new(:datetime => time)
         all.datetime.must_equal DateTime.parse(time)
+      end
+
+      it "does not try to convert nil to DateTime" do
+        All.new(:datetime => nil).datetime.must_be_nil
       end
 
       it "converts to Float" do
@@ -287,6 +295,10 @@ describe Class2 do
         all.float.must_equal 10.5
       end
 
+      it "does not try to convert nil to Float" do
+        All.new(:float => nil).float.must_be_nil
+      end
+
       it "converts to Hash" do
         all = All.new(:hash => [%w[a 1], %w[b 2]])
         all.hash.must_equal "a" => "1", "b" => "2"
@@ -295,6 +307,10 @@ describe Class2 do
       it "converts to Fixnum" do
         all = All.new(:fixnum => "123")
         all.fixnum.must_equal 123
+      end
+
+      it "does not try to convert nil to Fixnum" do
+        All.new(:fixnum => nil).fixnum.must_be_nil
       end
 
       it "converts to String" do

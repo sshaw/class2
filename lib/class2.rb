@@ -227,7 +227,7 @@ class Class2
         end
       end
 
-      namespace.const_set(name, klass) unless namespace.const_defined?(name)
+      namespace.const_set(name, klass)
     end
   end
 

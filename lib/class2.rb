@@ -106,10 +106,10 @@ class Class2
         object.each { |klass, attrs| make_class(namespace, klass, attrs, block) }
       end
 
-      make_method_name = lambda { |x| x.to_s.gsub(/[^\w]+/, "_") } # good enough
-
       name = name.to_s.classify
       return if namespace.const_defined?(name)
+
+      make_method_name = lambda { |x| x.to_s.gsub(/[^\w]+/, "_") } # good enough
 
       klass = Class.new do
         def initialize(attributes = nil)
@@ -117,7 +117,7 @@ class Class2
           assign_attributes(attributes)
         end
 
-        class_eval <<-CODE
+        class_eval <<-CODE, __FILE__, __LINE__
           def hash
             to_h.hash
           end
@@ -178,7 +178,7 @@ class Class2
                      "nil"
                    end
 
-          class_eval <<-CODE
+          class_eval <<-CODE, __FILE__, __LINE__
             def #{method}
               @#{method} = #{retval} unless defined? @#{method}
               @#{method}
@@ -194,7 +194,7 @@ class Class2
           method = make_method_name[method]
           attr_writer method
 
-          retval = method == method.pluralize ? "[]" : "#{method.classify}.new"
+          retval = method == method.pluralize ? "[]" : "#{namespace}::#{method.classify}.new"
           class_eval <<-CODE
             def #{method}
               @#{method} ||= #{retval}

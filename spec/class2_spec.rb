@@ -189,6 +189,15 @@ describe Class2 do
       user = A::User.new(:foo => { :bar => 123 })
       user.foo.bar.must_equal 123
     end
+
+    it "instantiates default instances of a nested attribute's class" do
+      Class2(
+        "A",
+        :user => { :foo => [:bar] }
+      )
+
+      A::User.new.foo.must_be_instance_of(A::Foo)
+    end
   end
 
   describe "defining classes with type conversions" do

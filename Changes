@@ -1,3 +1,8 @@
+2017-10-22  v0.2.4
+--------------------
+* Add class2 filename and linenum to generated classes
+* Bug fix: use the correct class name when instantiating a default nested instance
+
 2017-10-11  v0.2.3
 --------------------
 * Bug fix: don't try to convert to Float, Fixnum, Date, DateTime when nil

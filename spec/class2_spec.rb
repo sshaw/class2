@@ -396,6 +396,13 @@ describe Class2 do
       it "defaults to an empty Hash for hash types" do
         User.new.bar.must_equal []
       end
+
+      describe "a String attribute that's nil" do
+        it "does not convert nil to empty str" do
+          User.new(:name => nil).name.must_be_nil
+        end
+      end
+
     end
   end
 

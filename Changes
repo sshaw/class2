@@ -1,3 +1,7 @@
+2017-12-04  v0.3.0
+--------------------
+* For attributes with a type of String don't convert nil to an empty string
+
 2017-10-22  v0.2.4
 --------------------
 * Add class2 filename and linenum to generated classes

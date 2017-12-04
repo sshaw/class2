@@ -30,7 +30,7 @@ class Class2
     Float     => lambda { |v| "#{v} && Float(#{v})" },
     Hash      => lambda { |v| sprintf "%s.respond_to?(:to_h) ? %s.to_h : %s", v, v, v },
     Integer   => lambda { |v| "#{v} && Integer(#{v})" },
-    String    => lambda { |v| "String(#{v})" },
+    String    => lambda { |v| "#{v} && String(#{v})" },
     TrueClass => lambda do |v|
       sprintf '["1", 1, 1.0, true].freeze.include?(%s.is_a?(String) ? %s.strip : %s)', v, v, v
     end

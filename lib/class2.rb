@@ -41,6 +41,12 @@ class Class2
   CONVERSIONS.default = lambda { |v| v }
 
   class << self
+    attr_writer :force_snake_case
+
+    def force_snake_case
+      @force_snake_case || false
+    end
+
     def new(*argz, &block)
       specs = argz
       namespace = Object
@@ -71,16 +77,22 @@ class Class2
     def split_and_normalize_attributes(attributes)
       nested = []
       simple = []
+      maybe_snakeify = lambda do |attr|
+        return attr unless Class2.force_snake_case
+        attr = attr.to_s unless attr.is_a?(String)
+        attr.underscore
+      end
 
       attributes = [attributes] unless attributes.is_a?(Array)
       attributes.compact.each do |attr|
         # Just an attribute name, no type
         if !attr.is_a?(Hash)
-          simple << { attr => nil }
+          simple << { maybe_snakeify[attr] => nil }
           next
         end
 
         attr.each do |k, v|
+          k = maybe_snakeify[k]
           if v.is_a?(Hash) || v.is_a?(Array)
             if v.empty?
               # If it's empty it's not a nested spec, the attributes type is a Hash or Array
@@ -113,8 +125,7 @@ class Class2
 
       klass = Class.new do
         def initialize(attributes = nil)
-          return unless attributes.is_a?(Hash)
-          assign_attributes(attributes)
+          __initialize(attributes)
         end
 
         class_eval <<-CODE, __FILE__, __LINE__
@@ -205,10 +216,22 @@ class Class2
         # Do this last to allow for overriding the methods we define
         class_eval(&block) unless block.nil?
 
+        protected
+
+        def __initialize(attributes)
+          return unless attributes.is_a?(Hash)
+          assign_attributes(attributes)
+        end
+
         private
 
         def assign_attributes(attributes)
           attributes.each do |key, value|
+            if Class2.force_snake_case
+              key = key.to_s unless key.is_a?(String)
+              key = key.underscore
+            end
+
             if __nested_attributes.include?(key.respond_to?(:to_sym) ? key.to_sym : key) &&
                (value.is_a?(Hash) || value.is_a?(Array))
 
@@ -239,8 +262,7 @@ class Class2
     def self.included(klass)
       klass.class_eval do
         def initialize(attributes = nil)
-          return unless attributes.is_a?(Hash)
-          assign_attributes(attributes)
+          return unless __initialize(attributes)
 
           accepted = to_h.keys
           attributes.each do |name, _|

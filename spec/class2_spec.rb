@@ -406,6 +406,69 @@ describe Class2 do
     end
   end
 
+  describe ".force_snake_case" do
+    describe "when false" do
+      before do
+        Class2.force_snake_case = false
+        class2 :foo => %w[some_value another_value]
+      end
+
+      after do
+        Class2.force_snake_case = false
+        delete_constant("Foo")
+      end
+
+      it "does not assign camelCase arguments" do
+        foo = Foo.new(:someValue => 1, :anotherValue => 2)
+        foo.some_value.must_be_nil
+        foo.another_value.must_be_nil
+      end
+    end
+
+    describe "when true" do
+      before do
+        Class2.force_snake_case = true
+        class2 :foo => %w[someValue AnotherValue]
+      end
+
+      after do
+        Class2.force_snake_case = false
+        delete_constant("Foo")
+      end
+
+      it "does not create camelCase method names" do
+        foo = Foo.new
+        foo.wont_respond_to(:someValue)
+        foo.wont_respond_to(:someValue=)
+
+        foo.wont_respond_to(:AnotherValue)
+        foo.wont_respond_to(:AnotherValue=)
+      end
+
+      it "converts camelCase class definitions to snake_case" do
+        foo = Foo.new
+        foo.must_respond_to(:some_value)
+        foo.must_respond_to(:some_value=)
+
+        foo.must_respond_to(:another_value)
+        foo.must_respond_to(:another_value=)
+      end
+
+      it "assigns camelCase arguments to their snake_case attributes" do
+        # Reversing the casing here is intentional
+        foo = Foo.new(:SomeValue => 1, :anotherValue => 2)
+        foo.some_value.must_equal 1
+        foo.another_value.must_equal 2
+      end
+
+      it "assigns snake_case attributes" do
+        foo = Foo.new(:some_value => 1, :another_value => 2)
+        foo.some_value.must_equal 1
+        foo.another_value.must_equal 2
+      end
+    end
+  end
+
   describe "when Class2::StrictConstructor is included" do
     before do
       Class2(:foo => :bar) do

@@ -102,6 +102,8 @@ commit.author.name    # "sshaw"
 commit.comment_count  # 0
 ```
 
+If the JSON uses `camelCase` but you want your class to use `snake_case` set `Class2.force_snake_case` to `true`.
+
 ### class2 API
 
 The are 3 ways to use class2. Pick the one that suites your style and/or requirements:

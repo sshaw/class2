@@ -1,4 +1,4 @@
-# coding: utf-8
+# frozen_string_literal: true
 
 require "date"
 require "active_support/core_ext/module"
@@ -37,7 +37,7 @@ class Class2
   }
 
   CONVERSIONS[FalseClass] = CONVERSIONS[TrueClass]
-  CONVERSIONS[Fixnum] = CONVERSIONS[Integer]
+  CONVERSIONS[Fixnum] = CONVERSIONS[Integer] if defined?(Fixnum)
   CONVERSIONS.default = lambda { |v| v }
 
   class << self

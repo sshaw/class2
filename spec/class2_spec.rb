@@ -209,7 +209,7 @@ describe Class2 do
                  :boolean2 => FalseClass,
                  :date => Date,
                  :datetime => DateTime,
-                 :fixnum => Fixnum,
+                 :fixnum => Integer,
                  :float => Float,
                  :hash => Hash,
                  :integer => Integer,
@@ -222,7 +222,7 @@ describe Class2 do
                ],
 
                :nested => {
-                 :float => Float, :child => { :id => Fixnum }
+                 :float => Float, :child => { :id => Integer }
                }
               )
       end
@@ -313,12 +313,12 @@ describe Class2 do
         all.hash.must_equal "a" => "1", "b" => "2"
       end
 
-      it "converts to Fixnum" do
+      it "converts to Integer" do
         all = All.new(:fixnum => "123")
         all.fixnum.must_equal 123
       end
 
-      it "does not try to convert nil to Fixnum" do
+      it "does not try to convert nil to Integer" do
         All.new(:fixnum => nil).fixnum.must_be_nil
       end
 

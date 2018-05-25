@@ -30,7 +30,7 @@ Each of these classes are created with
 ```rb
 class2 :user => {
          :name => String,
-         :age  => Fixnum,
+         :age  => Integer,
          :addresses => [
            :city, :state, :zip,  # No explicit types for these
            :country => {
@@ -142,7 +142,7 @@ You can use any of these classes or their instances in your class definitions:
 * `DateTime`
 * `Float`
 * `Hash`
-* `Integer`/`Fixnum` - either one will cause a `Fixnum` conversion
+* `Integer`
 * `TrueClass`/`FalseClass` - either one will cause a boolean conversion
 
 Custom conversions are possible, just add the conversion to

@@ -1,3 +1,10 @@
+2018-05-XX  v0.4.0
+--------------------
+* Fix conversion bug when a module is used as a type specifier
+* Fix Fixnum deprecation warnings
+* Add Class2.force_snake_case
+* Add method that modules can use for initialization
+
 2017-12-04  v0.3.0
 --------------------
 * For attributes with a type of String don't convert nil to an empty string

@@ -2,6 +2,7 @@
 require "minitest/autorun"
 require "set"
 require "class2"
+require "uri"
 
 describe Class2 do
   def delete_constant(name)
@@ -402,7 +403,23 @@ describe Class2 do
           User.new(:name => nil).name.must_be_nil
         end
       end
+    end
 
+    describe "using modules for types" do
+      before do
+        Class2::CONVERSIONS[URI] = lambda { |v| "#{v} && URI(#{v})" }
+        class2 :user => [ :homepage => URI ]
+      end
+
+      after do
+        Class2::CONVERSIONS.delete(URI)
+        delete_constant("User")
+      end
+
+      it "converters the value" do
+        u = User.new(:homepage => "http://example.com")
+        u.homepage.must_be_instance_of(URI::HTTP)
+      end
     end
   end
 

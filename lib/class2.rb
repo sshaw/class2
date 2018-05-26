@@ -103,7 +103,7 @@ class Class2
           else
             # Type can be a class name or an instance
             # If it's an instance, use its type
-            v = v.class unless v.is_a?(Class)
+            v = v.class unless v.is_a?(Class) || v.is_a?(Module)
             simple << { k => v }
           end
         end

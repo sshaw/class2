@@ -2,7 +2,7 @@
 
 require "date"
 require "active_support/core_ext/module"
-require "active_support/core_ext/string"
+require "active_support/inflector"
 
 require "class2/version"
 

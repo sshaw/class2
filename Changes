@@ -1,8 +1,8 @@
-2018-05-XX  v0.4.0
+2018-05-27  v0.4.0
 --------------------
 * Fix conversion bug when a module is used as a type specifier
 * Fix Fixnum deprecation warnings
-* Add Class2.force_snake_case
+* Add support for JSON serialization and accessor formats that differ from definition
 * Add method that modules can use for initialization
 
 2017-12-04  v0.3.0

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "date"
+require "json"
 require "active_support/core_ext/module"
 require "active_support/inflector"
 
@@ -41,12 +42,6 @@ class Class2
   CONVERSIONS.default = lambda { |v| v }
 
   class << self
-    attr_writer :force_snake_case
-
-    def force_snake_case
-      @force_snake_case || false
-    end
-
     def new(*argz, &block)
       specs = argz
       namespace = Object
@@ -77,22 +72,16 @@ class Class2
     def split_and_normalize_attributes(attributes)
       nested = []
       simple = []
-      maybe_snakeify = lambda do |attr|
-        return attr unless Class2.force_snake_case
-        attr = attr.to_s unless attr.is_a?(String)
-        attr.underscore
-      end
 
       attributes = [attributes] unless attributes.is_a?(Array)
       attributes.compact.each do |attr|
         # Just an attribute name, no type
         if !attr.is_a?(Hash)
-          simple << { maybe_snakeify[attr] => nil }
+          simple << { attr => nil }
           next
         end
 
         attr.each do |k, v|
-          k = maybe_snakeify[k]
           if v.is_a?(Hash) || v.is_a?(Array)
             if v.empty?
               # If it's empty it's not a nested spec, the attributes type is a Hash or Array
@@ -138,11 +127,11 @@ class Class2
             to_h == other.to_h
           end
 
-          alias :eql? :==
+          alias eql? ==
 
           def to_h
             hash = {}
-            (#{simple.map { |n| n.keys.first } + nested.map { |n| n.keys.first }}).each do |name|
+            self.class.__attributes.each do |name|
               hash[name] = v = public_send(name)
               # Don't turn nil into a Hash
               next if v.nil? || !v.respond_to?(:to_h)
@@ -169,11 +158,17 @@ class Class2
             hash
           end
 
-          def __nested_attributes
+          def self.__nested_attributes
             #{nested.map { |n| n.keys.first.to_sym }}.freeze
           end
 
-          private :__nested_attributes
+          def self.__simple_attributes
+            #{simple.map { |n| n.keys.first.to_sym }}.freeze
+          end
+
+          def self.__attributes
+            (__simple_attributes + __nested_attributes).freeze
+          end
         CODE
 
         simple.each do |cfg|
@@ -227,12 +222,7 @@ class Class2
 
         def assign_attributes(attributes)
           attributes.each do |key, value|
-            if Class2.force_snake_case
-              key = key.to_s unless key.is_a?(String)
-              key = key.underscore
-            end
-
-            if __nested_attributes.include?(key.respond_to?(:to_sym) ? key.to_sym : key) &&
+            if self.class.__nested_attributes.include?(key.respond_to?(:to_sym) ? key.to_sym : key) &&
                (value.is_a?(Hash) || value.is_a?(Array))
 
               name = key.to_s.classify
@@ -256,21 +246,139 @@ class Class2
 
   #
   # By default unknown arguments are ignored. <code>include<code>ing this will
-  # cause an ArgumentError to be raised if an attribute is unknown:
+  # cause an ArgumentError to be raised if an attribute is unknown.
   #
   module StrictConstructor
     def self.included(klass)
       klass.class_eval do
         def initialize(attributes = nil)
           return unless __initialize(attributes)
-
-          accepted = to_h.keys
           attributes.each do |name, _|
-            next if accepted.include?(name.respond_to?(:to_sym) ? name.to_sym : name)
+            next if self.class.__attributes.include?(name.respond_to?(:to_sym) ? name.to_sym : name)
             raise ArgumentError, "unknown attribute: #{name}"
           end
         end
       end
     end
   end
+
+  #
+  # Support +CamelCase+ attributes. See Class2::SnakeCase.
+  #
+  module UpperCamelCase
+    module Attributes
+      def self.included(klass)
+        Util.convert_attributes(klass) { |v| v.camelize }
+      end
+    end
+
+    module JSON
+      def as_json(*)
+        Util.as_json(self, :camelize)
+      end
+
+      def to_json(*argz)
+        as_json.to_json(*argz)
+      end
+    end
+  end
+
+  #
+  # Support +camelCase+ attributes. See Class2::SnakeCase .
+  #
+  module LowerCamelCase
+    module Attributes
+      def self.included(klass)
+        Util.convert_attributes(klass) { |v| v.camelize(:lower) }
+      end
+    end
+
+    module JSON
+      def as_json(*)
+        Util.as_json(self, :camelize, :lower)
+      end
+
+      def to_json(*argz)
+        as_json.to_json(*argz)
+      end
+    end
+  end
+
+  #
+  # Use this when the class was not defined using a Hash with +snake_case+ keys
+  # but +snake_case+ is a desired access or serialization mechanism.
+  #
+  module SnakeCase
+    #
+    # Support +snake_case+ attributes.
+    # This will accept them in the constructor and return them via #to_h.
+    #
+    # The key format used to define the class will still be accepted and its accessors will
+    # remain.
+    #
+    module Attributes
+      def self.included(klass)
+        Util.convert_attributes(klass) { |v| v.underscore }
+      end
+    end
+
+    #
+    # Create JSON documents that have +snake_case+ properties.
+    # This will add #as_json and #to_json methods.
+    #
+    module JSON
+      def as_json(*)
+        Util.as_json(self, :underscore)
+      end
+
+      def to_json(*argz)
+        as_json.to_json(*argz)
+      end
+    end
+  end
+
+  module Util
+    def self.as_json(klass, *argz)
+      hash = {}
+      klass.to_h.each do |k, v|
+        if v.is_a?(Hash)
+          v = as_json(v, *argz)
+        elsif v.respond_to?(:as_json)
+          v = v.as_json
+        end
+
+        hash[k.to_s.public_send(*argz)] = v
+      end
+
+      hash
+    end
+
+    def self.convert_attributes(klass)
+      klass.class_eval do
+        alias_and_convert = lambda do |attributes|
+          attributes.map do |old_name|
+            new_name = yield(old_name.to_s)
+            alias_method new_name, old_name
+            alias_method "#{new_name}=", "#{old_name}="
+            new_name.to_sym
+          end
+        end
+
+        new_simple = alias_and_convert[__simple_attributes]
+        new_nested = alias_and_convert[__nested_attributes]
+        class_eval <<-CODE
+          def self.__simple_attributes
+            #{new_simple}.freeze
+          end
+
+          def self.__nested_attributes
+            #{new_nested}.freeze
+          end
+        CODE
+      end
+    end
+  end
+
+  private_constant :Util
+
 end

@@ -95,14 +95,36 @@ response = [
   }
 ]
 
-class2 :commit => response.first
+class2 :commit => response.first do
+  include Class2::SnakeCase::JSON
+end
 
 commit = Commit.new(response.first)
 commit.author.name    # "sshaw"
 commit.comment_count  # 0
+JSON.dump(commit)
 ```
 
-If the JSON uses `camelCase` but you want your class to use `snake_case` set `Class2.force_snake_case` to `true`.
+If the JSON uses `camelCase` but you want your class to use `snake_case` you can do the following:
+
+```rb
+class2 :commit => { :camelCase => { :someKey => 123, :anotherKey => 456 } } do
+  include Class2::SnakeCase::Attributes
+  include Class2::LowerCamelCase::JSON
+end
+
+commit = Commint.new(:camel_case => { :some_key => 55 })
+commit.camel_case.some_key # 55
+
+commit = Commint.new(:camelCase => { :someKey => 55 })
+commit.camel_case.some_key # 55
+```
+
+For more info on accessor formats and JSON see:
+
+* [`Class2::SnakeCase`](https://www.rubydoc.info/gems/class2/Class2/SnakeCase)
+* [`Class2::UpperCamelCase`](https://www.rubydoc.info/gems/class2/Class2/UpperCamelCase)
+* [`Class2::LowerCamelCase`](https://www.rubydoc.info/gems/class2/Class2/LowerCamelCase)
 
 ### class2 API
 
@@ -222,6 +244,7 @@ Now an `ArgumentError` will be raised if anything but `id`, `name`, or
 `age` are passed in.
 
 Also see [Customizations](#customizations).
+
 
 ## See Also
 

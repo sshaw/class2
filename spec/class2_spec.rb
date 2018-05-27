@@ -67,9 +67,9 @@ describe Class2 do
       user1.wont_equal "foo"
     end
 
-    it "creates a to_h method" do
+    it "creates a #to_h method" do
       user = User.new(:id => 1, :name => "sshaw", :addresses => [ :city => "NYC" ])
-      user.to_h.must_equal({
+      user.to_h.must_equal(
         :id => 1,
         :name => "sshaw",
         :addresses => [
@@ -81,14 +81,14 @@ describe Class2 do
             :code => nil
           }
         ]
-      })
+      )
 
       user.name = user.addresses = nil
-      user.to_h.must_equal({
+      user.to_h.must_equal(
         :id => 1,
         :name => nil,
         :addresses => []
-      })
+      )
     end
 
     describe "attributes that accept an Array" do
@@ -423,66 +423,137 @@ describe Class2 do
     end
   end
 
-  describe ".force_snake_case" do
-    describe "when false" do
-      before do
-        Class2.force_snake_case = false
-        class2 :foo => %w[some_value another_value]
-      end
-
-      after do
-        Class2.force_snake_case = false
-        delete_constant("Foo")
-      end
-
-      it "does not assign camelCase arguments" do
-        foo = Foo.new(:someValue => 1, :anotherValue => 2)
-        foo.some_value.must_be_nil
-        foo.another_value.must_be_nil
+  describe "when Class2::UpperCamelCase::Attributes is included" do
+    before do
+      class2 :foo => %w[some_value another_value] do
+        include Class2::UpperCamelCase::Attributes
       end
     end
 
-    describe "when true" do
-      before do
-        Class2.force_snake_case = true
-        class2 :foo => %w[someValue AnotherValue]
+    after do
+      delete_constant("Foo")
+    end
+
+    it "adds CamelCase versions of the snake_case methods" do
+      foo = Foo.new
+      foo.must_respond_to(:SomeValue)
+      foo.must_respond_to(:SomeValue=)
+
+      foo.must_respond_to(:AnotherValue)
+      foo.must_respond_to(:AnotherValue=)
+    end
+
+    it "assigns snake_case arguments to their CamelCase attributes" do
+      foo = Foo.new(:some_value => 1, :another_value => 2)
+      foo.SomeValue.must_equal 1
+      foo.AnotherValue.must_equal 2
+    end
+
+    it "assigns CamelCase arguments to their snake_case attributes" do
+      foo = Foo.new(:SomeValue => 1, :AnotherValue => 2)
+      foo.some_value.must_equal 1
+      foo.another_value.must_equal 2
+    end
+
+    it "#to_h uses CamelCase keys" do
+      foo = Foo.new(:some_value => 1, :another_value => 2)
+      foo.to_h.must_equal :SomeValue => 1, :AnotherValue => 2
+    end
+  end
+
+  describe "when Class2::UpperCamelCase::Attributes is included" do
+    before do
+      class2 :foo => %w[some_value another_value] do
+        include Class2::UpperCamelCase::Attributes
       end
+    end
 
-      after do
-        Class2.force_snake_case = false
-        delete_constant("Foo")
+    after do
+      delete_constant("Foo")
+    end
+
+    it "assigns snake_case arguments to their camelCase attributes" do
+      foo = Foo.new(:some_value => 1, :another_value => 2)
+      foo.SomeValue.must_equal 1
+      foo.AnotherValue.must_equal 2
+    end
+  end
+
+  describe "when Class2::UpperCamelCase::JSON is included" do
+    before do
+      class2 :foo => %w[some_value another_value] do
+        include Class2::UpperCamelCase::JSON
       end
+    end
 
-      it "does not create camelCase method names" do
-        foo = Foo.new
-        foo.wont_respond_to(:someValue)
-        foo.wont_respond_to(:someValue=)
+    after do
+      delete_constant("Foo")
+    end
 
-        foo.wont_respond_to(:AnotherValue)
-        foo.wont_respond_to(:AnotherValue=)
+    it "#as_json uses CamelCase keys" do
+      foo = Foo.new(:some_value => 1, :another_value => 2)
+      foo.as_json.must_equal "SomeValue" => 1, "AnotherValue" => 2
+    end
+
+    it "#to_h uses the format used to define the class" do
+      foo = Foo.new(:some_value => 1, :another_value => 2)
+      foo.to_h.must_equal :some_value => 1, :another_value => 2
+    end
+  end
+
+  describe "when Class2::SnakeCase::Attributes is included" do
+    before do
+      class2 :foo => %w[someValue AnotherValue] do
+        include Class2::SnakeCase::Attributes
       end
+    end
 
-      it "converts camelCase class definitions to snake_case" do
-        foo = Foo.new
-        foo.must_respond_to(:some_value)
-        foo.must_respond_to(:some_value=)
+    after do
+      delete_constant("Foo")
+    end
 
-        foo.must_respond_to(:another_value)
-        foo.must_respond_to(:another_value=)
+    it "adds snake_case versions of the camelCase methods" do
+      foo = Foo.new
+      foo.must_respond_to(:some_value)
+      foo.must_respond_to(:some_value=)
+
+      foo.must_respond_to(:another_value)
+      foo.must_respond_to(:another_value=)
+    end
+
+    it "assigns camelCase arguments to their snake_case attributes" do
+      foo = Foo.new(:someValue => 1, :AnotherValue => 2)
+      foo.some_value.must_equal 1
+      foo.another_value.must_equal 2
+    end
+
+    it "assigns snake_case arguments to their cameCamel attributes" do
+      foo = Foo.new(:some_value => 1, :another_value => 2)
+      foo.some_value.must_equal 1
+      foo.another_value.must_equal 2
+    end
+  end
+
+
+  describe "when Class2::SnakeCase::JSON is included" do
+    before do
+      class2 :foo => %w[someValue anotherValue] do
+        include Class2::SnakeCase::JSON
       end
+    end
 
-      it "assigns camelCase arguments to their snake_case attributes" do
-        # Reversing the casing here is intentional
-        foo = Foo.new(:SomeValue => 1, :anotherValue => 2)
-        foo.some_value.must_equal 1
-        foo.another_value.must_equal 2
-      end
+    after do
+      delete_constant("Foo")
+    end
 
-      it "assigns snake_case attributes" do
-        foo = Foo.new(:some_value => 1, :another_value => 2)
-        foo.some_value.must_equal 1
-        foo.another_value.must_equal 2
-      end
+    it "#as_json uses snake_case keys" do
+      foo = Foo.new(:someValue => 1, :anotherValue => 2)
+      foo.as_json.must_equal "some_value" => 1, "another_value" => 2
+    end
+
+    it "#to_h uses the format used to define the class" do
+      foo = Foo.new(:someValue => 1, :anotherValue => 2)
+      foo.to_h.must_equal :someValue => 1, :anotherValue => 2
     end
   end
 

@@ -503,7 +503,7 @@ describe Class2 do
 
   describe "when Class2::SnakeCase::Attributes is included" do
     before do
-      class2 :foo => %w[someValue AnotherValue] do
+      class2 :foo => [:someValue, :AnotherValue, :nestedValue => [:id]] do
         include Class2::SnakeCase::Attributes
       end
     end
@@ -527,10 +527,20 @@ describe Class2 do
       foo.another_value.must_equal 2
     end
 
+    it "assigns nested camelCase arguments to their snake_case attributes" do
+      foo = Foo.new(:nestedValue => { :id => 1 })
+      foo.nested_value.must_equal NestedValue.new(:id => 1)
+    end
+
     it "assigns snake_case arguments to their cameCamel attributes" do
       foo = Foo.new(:some_value => 1, :another_value => 2)
       foo.some_value.must_equal 1
       foo.another_value.must_equal 2
+    end
+
+    it "assigns nested snake_case arguments" do
+      foo = Foo.new(:nested_value => { :id => 1 })
+      foo.nested_value.must_equal NestedValue.new(:id => 1)
     end
   end
 

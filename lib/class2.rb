@@ -162,12 +162,8 @@ class Class2
             #{nested.map { |n| n.keys.first.to_sym }}.freeze
           end
 
-          def self.__simple_attributes
-            #{simple.map { |n| n.keys.first.to_sym }}.freeze
-          end
-
           def self.__attributes
-            (__simple_attributes + __nested_attributes).freeze
+            (#{simple.map { |n| n.keys.first.to_sym }} + __nested_attributes).freeze
           end
         CODE
 
@@ -343,6 +339,8 @@ class Class2
       klass.to_h.each do |k, v|
         if v.is_a?(Hash)
           v = as_json(v, *argz)
+        elsif v.is_a?(Array)
+          v = v.map { |e| as_json(e, *argz) }
         elsif v.respond_to?(:as_json)
           v = v.as_json
         end
@@ -355,24 +353,26 @@ class Class2
 
     def self.convert_attributes(klass)
       klass.class_eval do
-        alias_and_convert = lambda do |attributes|
-          attributes.map do |old_name|
-            new_name = yield(old_name.to_s)
-            alias_method new_name, old_name
-            alias_method "#{new_name}=", "#{old_name}="
-            new_name.to_sym
-          end
+        new_nested = []
+        new_attributes = []
+
+        __attributes.map do |old_name|
+          new_name = yield(old_name.to_s)
+          alias_method new_name, old_name
+          alias_method "#{new_name}=", "#{old_name}="
+
+          new_attributes << new_name.to_sym
+          new_nested << new_attributes.last if __nested_attributes.include?(old_name)
         end
 
-        new_simple = alias_and_convert[__simple_attributes]
-        new_nested = alias_and_convert[__nested_attributes]
         class_eval <<-CODE
-          def self.__simple_attributes
-            #{new_simple}.freeze
+          def self.__attributes
+            #{new_attributes}.freeze
           end
 
+          # We need both styles nere to support proper assignment of nested attributes... :(
           def self.__nested_attributes
-            #{new_nested}.freeze
+            #{new_nested + __nested_attributes}.freeze
           end
         CODE
       end

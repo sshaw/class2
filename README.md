@@ -108,15 +108,15 @@ JSON.dump(commit)
 If the JSON uses `camelCase` but you want your class to use `snake_case` you can do the following:
 
 ```rb
-class2 :commit => { :camelCase => { :someKey => 123, :anotherKey => 456 } } do
-  include Class2::SnakeCase::Attributes
-  include Class2::LowerCamelCase::JSON
+class2 "commit" => { "camelCase" => { "someKey" => 123, "anotherKey" => 456 } } do
+  include Class2::SnakeCase::Attributes # snake_case accessors
+  include Class2::LowerCamelCase::JSON  # but serialize using camelCase
 end
 
-commit = Commint.new(:camel_case => { :some_key => 55 })
+commit = Commit.new(:camel_case => { :some_key => 55 })
 commit.camel_case.some_key # 55
 
-commit = Commint.new(:camelCase => { :someKey => 55 })
+commit = Commit.new(:camelCase => { :someKey => 55 })
 commit.camel_case.some_key # 55
 ```
 

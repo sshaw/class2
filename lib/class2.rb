@@ -108,7 +108,7 @@ class Class2
       end
 
       name = name.to_s.classify
-      return if namespace.const_defined?(name)
+      return if namespace.const_defined?(name, false)
 
       make_method_name = lambda { |x| x.to_s.gsub(/[^\w]+/, "_") } # good enough
 

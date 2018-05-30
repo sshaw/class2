@@ -199,6 +199,19 @@ describe Class2 do
 
       A::User.new.foo.must_be_instance_of(A::Foo)
     end
+
+    describe "when a class with the same name exists outside the namespace"  do
+      before { User = Class.new }
+      after  { delete_constant("User") }
+
+      it "creates the class within the given namespace" do
+        class2 "A", :user => %w[id]
+
+        klass = "A::User"
+        Object.const_defined?(klass).must_equal true
+        Object.const_get(klass).must_be_instance_of Class
+      end
+    end
   end
 
   describe "defining classes with type conversions" do

@@ -1,7 +1,11 @@
+2018-05-29  v0.4.1
+--------------------
+* Fix a namespace'd class from not being defined if top-level class exists
+
 2018-05-27  v0.4.0
 --------------------
-* Fix conversion bug when a module is used as a type specifier
-* Fix Fixnum deprecation warnings
+* Bug fix: conversion bug when a module is used as a type specifier
+* Bug fix: Fixnum deprecation
 * Add support for JSON serialization and accessor formats that differ from definition
 * Add method that modules can use for initialization
 

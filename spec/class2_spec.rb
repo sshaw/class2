@@ -598,4 +598,23 @@ describe Class2 do
       lambda { Foo.new(:baz => 123) }.must_raise ArgumentError, "unknown attribute: baz"
     end
   end
+
+  describe "require 'class2/autoload'" do
+    after { delete_constant("User") }
+
+    it "defines the file's in calling file's DATA section" do
+      require_relative "./fixtures/autoload"
+      Object.const_defined?("User").must_equal true
+    end
+
+    it "defines the file's in global DATA section" do
+      cmd = sprintf("%s -I %s %s",
+                    RbConfig::CONFIG["RUBY_INSTALL_NAME"],
+                    $:[0],
+                    File.join(__dir__, "fixtures/main.rb"))
+
+      `#{cmd}`.must_equal "constant\n"
+    end
+
+  end
 end

@@ -126,6 +126,32 @@ For more info on accessor formats and JSON see:
 * [`Class2::UpperCamelCase`](https://www.rubydoc.info/gems/class2/Class2/UpperCamelCase)
 * [`Class2::LowerCamelCase`](https://www.rubydoc.info/gems/class2/Class2/LowerCamelCase)
 
+
+You can also autoload a definition from a DATA section:
+
+```rb
+require "class2/autoload"  # builds classes from below JSON
+require "pp"
+
+commit = Commit.new(:author => { :name => "luser1" })
+pp commit.to_h
+
+__END__
+{
+  "response":  {
+    "sha": "f52f1ed9144e1f73346176ab79a61af78df1b6bd",
+    "commit": {
+      "author": {
+        "name": "sshaw",
+        "email": "skye.shaw@gmail.com",
+        "date": "2016-06-30T03:51:00Z"
+      }
+    },
+    "comment_count": 0
+  }
+}
+```
+
 ### class2 API
 
 The are 3 ways to use class2. Pick the one that suites your style and/or requirements:

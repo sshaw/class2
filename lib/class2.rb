@@ -58,6 +58,30 @@ class Class2
       nil
     end
 
+    def autoload(namespace = Object) # :nodoc:
+      failure = lambda { |message|  abort "class2: cannot autoload class definitions: #{message}" }
+      failure["cannot find the right caller"] unless caller.find do |line|
+        line.index("/kernel_require.rb:").nil? && line =~ /(.+):\d+:in\s+`\w/
+      end
+
+      data = String.new
+      File.open($1) do |io|
+        while line = io.gets
+          if line == "__END__\n"
+            data << line while line = io.gets
+          end
+        end
+      end
+
+      data = ::DATA.read if data.empty? && defined?(::DATA)
+      failure["no data section found"] if data.empty?
+
+      spec = JSON.parse(data)
+      Class2.new(namespace, spec)
+    rescue IOError, SystemCallError, JSON::ParserError => e
+      failure[e.message]
+    end
+
     private
 
     def create_namespace(str)

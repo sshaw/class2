@@ -1,3 +1,7 @@
+2018-06-07  v0.5.0
+--------------------
+* Add support for autoloading class definitions from JSON in a DATA section
+
 2018-05-29  v0.4.1
 --------------------
 * Fix a namespace'd class from not being defined if top-level class exists

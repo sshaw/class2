@@ -61,9 +61,11 @@ class Class2
     def autoload(namespace = Object) # :nodoc:
       failure = lambda { |message|  abort "class2: cannot autoload class definitions: #{message}" }
       failure["cannot find the right caller"] unless caller.find do |line|
-        line.index("/kernel_require.rb:").nil? && line =~ /(.+):\d+:in\s+`\S/
+        # Ignore our autoload file and require()
+        line.index("/class2/autoload.rb:").nil? && line.index("/kernel_require.rb:").nil? && line =~ /(.+):\d+:in\s+`\S/
       end
 
+      # Give this precedence over global DATA constant
       data = String.new
       File.open($1) do |io|
         while line = io.gets
@@ -73,6 +75,7 @@ class Class2
         end
       end
 
+      # Fallback to global constant if nothing found
       data = ::DATA.read if data.empty? && defined?(::DATA)
       failure["no data section found"] if data.empty?
 

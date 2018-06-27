@@ -1,3 +1,7 @@
+2018-06-26  v0.5.1
+--------------------
+* Bug fix: autoload backtrace search "improvemnts"
+
 2018-06-07  v0.5.0
 --------------------
 * Add support for autoloading class definitions from JSON in a DATA section

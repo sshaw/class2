@@ -61,7 +61,7 @@ class Class2
     def autoload(namespace = Object) # :nodoc:
       failure = lambda { |message|  abort "class2: cannot autoload class definitions: #{message}" }
       failure["cannot find the right caller"] unless caller.find do |line|
-        line.index("/kernel_require.rb:").nil? && line =~ /(.+):\d+:in\s+`\w/
+        line.index("/kernel_require.rb:").nil? && line =~ /(.+):\d+:in\s+`\S/
       end
 
       data = String.new

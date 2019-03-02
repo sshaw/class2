@@ -271,7 +271,6 @@ Now an `ArgumentError` will be raised if anything but `id`, `name`, or
 
 Also see [Customizations](#customizations).
 
-
 ## See Also
 
 The Perl modules that served as inspiration:
@@ -284,6 +283,11 @@ The Perl modules that served as inspiration:
 * [`Rubyish`](https://metacpan.org/pod/Rubyish)
 
 Surely others I cannot remember...
+
+And these Ruby modules:
+
+* [`require2`](https://github.com/sshaw/require2)
+* [`alias2`](https://github.com/sshaw/alias2)
 
 ## Author
 

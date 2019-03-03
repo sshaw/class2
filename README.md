@@ -286,7 +286,7 @@ Surely others I cannot remember...
 
 And these Ruby modules:
 
-* [`require2`](https://github.com/sshaw/require2)
+* [`require3`](https://github.com/sshaw/require3)
 * [`alias2`](https://github.com/sshaw/alias2)
 
 ## Author

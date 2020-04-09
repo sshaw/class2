@@ -2,8 +2,8 @@
 
 require "date"
 require "json"
-require "active_support/core_ext/module"
-require "active_support/inflector"
+require "strings-inflection"
+require "strings-case"
 
 require "class2/version"
 
@@ -134,7 +134,7 @@ class Class2
         object.each { |klass, attrs| make_class(namespace, klass, attrs, block) }
       end
 
-      name = name.to_s.classify
+      name = Util.classify(name.to_s)
       return if namespace.const_defined?(name, false)
 
       make_method_name = lambda { |x| x.to_s.gsub(/[^\w]+/, "_") } # good enough
@@ -223,7 +223,7 @@ class Class2
           method = make_method_name[method]
           attr_writer method
 
-          retval = method == method.pluralize ? "[]" : "#{namespace}::#{method.classify}.new"
+          retval = Strings::Inflection.plural?(method) ? "[]" : "#{namespace}::#{Util.classify(method)}.new"
           class_eval <<-CODE
             def #{method}
               @#{method} ||= #{retval}
@@ -248,12 +248,13 @@ class Class2
             if self.class.__nested_attributes.include?(key.respond_to?(:to_sym) ? key.to_sym : key) &&
                (value.is_a?(Hash) || value.is_a?(Array))
 
-              name = key.to_s.classify
+              name = Util.classify(key.to_s)
 
-              # Only look in our namespace to prevent unwanted lookup
-              next unless self.class.parent.const_defined?(name)
+              parent = self.class.name.split("::")[-2]
+              parent = parent ? Object.const_get(parent) : self.class
+              next unless parent.const_defined?(name)
 
-              klass = self.class.parent.const_get(name)
+              klass = parent.const_get(name)
               value = value.is_a?(Hash) ? klass.new(value) : value.map { |v| klass.new(v) }
             end
 
@@ -291,13 +292,13 @@ class Class2
   module UpperCamelCase
     module Attributes
       def self.included(klass)
-        Util.convert_attributes(klass) { |v| v.camelize }
+        Util.convert_attributes(klass) { |v| Strings::Case.pascalcase(v) }
       end
     end
 
     module JSON
       def as_json(*)
-        Util.as_json(self, :camelize)
+        Util.as_json(self, :pascalcase)
       end
 
       def to_json(*argz)
@@ -307,18 +308,18 @@ class Class2
   end
 
   #
-  # Support +camelCase+ attributes. See Class2::SnakeCase .
+  # Support +camelCase+ attributes. See Class2::SnakeCase.
   #
   module LowerCamelCase
     module Attributes
       def self.included(klass)
-        Util.convert_attributes(klass) { |v| v.camelize(:lower) }
+        Util.convert_attributes(klass) { |v| Strings::Case.camelcase(v) }
       end
     end
 
     module JSON
       def as_json(*)
-        Util.as_json(self, :camelize, :lower)
+        Util.as_json(self, :pascalcase)
       end
 
       def to_json(*argz)
@@ -341,7 +342,7 @@ class Class2
     #
     module Attributes
       def self.included(klass)
-        Util.convert_attributes(klass) { |v| v.underscore }
+        Util.convert_attributes(klass) { |v| Strings::Case.underscore(v) }
       end
     end
 
@@ -361,21 +362,25 @@ class Class2
   end
 
   module Util
-    def self.as_json(klass, *argz)
+    def self.as_json(klass, conversion)
       hash = {}
       klass.to_h.each do |k, v|
         if v.is_a?(Hash)
-          v = as_json(v, *argz)
+          v = as_json(v, conversion)
         elsif v.is_a?(Array)
-          v = v.map { |e| as_json(e, *argz) }
+          v = v.map { |e| as_json(e, conversion) }
         elsif v.respond_to?(:as_json)
           v = v.as_json
         end
 
-        hash[k.to_s.public_send(*argz)] = v
+        hash[Strings::Case.public_send(conversion, k.to_s)] = v
       end
 
       hash
+    end
+
+    def self.classify(name)
+      Strings::Case.pascalcase(Strings::Inflection.singularize(name))
     end
 
     def self.convert_attributes(klass)

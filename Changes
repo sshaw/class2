@@ -1,3 +1,7 @@
+2020-04-24  v0.5.2
+--------------------
+* Bug fix: Fix NoMethodError in ActiveSupport 6's Module.parent
+
 2018-06-26  v0.5.1
 --------------------
 * Bug fix: autoload backtrace search "improvemnts"

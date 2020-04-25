@@ -249,10 +249,11 @@ class Class2
 
               name = key.to_s.classify
 
-              # Only look in our namespace to prevent unwanted lookup
-              next unless self.class.parent.const_defined?(name)
+              # parent is deprecated in ActiveSupport 6 and its warning uses Strong#squish! which they don't include!
+              parent = self.class.respond_to?(:module_parent) ? self.class.module_parent : self.class.parent
+              next unless parent.const_defined?(name)
 
-              klass = self.class.parent.const_get(name)
+              klass = parent.const_get(name)
               value = value.is_a?(Hash) ? klass.new(value) : value.map { |v| klass.new(v) }
             end
 

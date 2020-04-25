@@ -1,5 +1,6 @@
 sudo: false
 language: ruby
+cache: bundler
 rvm:
   - jruby-9
   - 2.3
@@ -8,6 +9,24 @@ rvm:
   - 2.6
   - 2.7
 
-before_install: gem install bundler
+# https://docs.travis-ci.com/user/languages/ruby/#bundler-20
+before_install:
+  - gem uninstall -v '>= 2' -i $(rvm gemdir)@global -ax bundler || true
+  - gem install bundler -v '< 2'
+
+gemfile:
+  - gemfiles/as4.gemfile
+  - gemfiles/as5.gemfile
+  - gemfiles/as6.gemfile
+
+matrix:
+  exclude:
+    - rvm: 2.3
+      gemfile: gemfiles/as6.gemfile
+    - rvm: 2.4
+      gemfile: gemfiles/as6.gemfile
+    - rvm: 2.7
+      gemfile: gemfiles/as4.gemfile
+
 notifications:
   email: false

@@ -3,7 +3,7 @@ appraise "as4" do
 end
 
 appraise "as5" do
-  gem "activesupport", "~> 4.2"
+  gem "activesupport", "~> 5.2"
 end
 
 appraise "as6" do

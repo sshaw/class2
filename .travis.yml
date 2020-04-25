@@ -9,10 +9,8 @@ rvm:
   - 2.6
   - 2.7
 
-# https://docs.travis-ci.com/user/languages/ruby/#bundler-20
 before_install:
-  - gem uninstall -v '>= 2' -i $(rvm gemdir)@global -ax bundler || true
-  - gem install bundler -v '< 2'
+  - gem install bundler
 
 gemfile:
   - gemfiles/as4.gemfile

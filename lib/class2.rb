@@ -58,9 +58,9 @@ class Class2
       nil
     end
 
-    def autoload(namespace = Object) # :nodoc:
+    def autoload(namespace = Object, stack = nil) # :nodoc:
       failure = lambda { |message|  abort "class2: cannot autoload class definitions: #{message}" }
-      failure["cannot find the right caller"] unless caller.find do |line|
+      failure["cannot find the right caller"] unless (stack || caller).find do |line|
         # Ignore our autoload file and require()
         line.index("/class2/autoload.rb:").nil? && line.index("/kernel_require.rb:").nil? && line =~ /(.+):\d+:in\s+`\S/
       end

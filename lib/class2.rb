@@ -38,7 +38,6 @@ class Class2
   }
 
   CONVERSIONS[FalseClass] = CONVERSIONS[TrueClass]
-  CONVERSIONS[Fixnum] = CONVERSIONS[Integer]
   CONVERSIONS.default = lambda { |v| v }
 
   class << self

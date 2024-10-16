@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "date"
+require "time"                  # for parse()
 require "json"
 require "active_support/core_ext/module"
 require "active_support/inflector"
@@ -32,6 +33,7 @@ class Class2
     Hash      => lambda { |v| sprintf "%s.respond_to?(:to_h) ? %s.to_h : %s", v, v, v },
     Integer   => lambda { |v| "#{v} && Integer(#{v})" },
     String    => lambda { |v| "#{v} && String(#{v})" },
+    Time      => lambda { |v| "#{v} && Time.parse(#{v})" },
     TrueClass => lambda do |v|
       sprintf '["1", 1, 1.0, true].freeze.include?(%s.is_a?(String) ? %s.strip : %s)', v, v, v
     end

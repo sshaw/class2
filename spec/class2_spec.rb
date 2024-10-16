@@ -227,6 +227,7 @@ describe Class2 do
                  :float => Float,
                  :hash => Hash,
                  :integer => Integer,
+                 :time => Time,
                  :string => String,
                },
 
@@ -304,6 +305,12 @@ describe Class2 do
         time = "2017-01-01T01:02:03"
         all = All.new(:datetime => time)
         all.datetime.must_equal DateTime.parse(time)
+      end
+
+      it "converts to Time" do
+        time = "2017-01-01T01:02:03"
+        all = All.new(:time => time)
+        all.time.must_equal Time.parse(time)
       end
 
       it "does not try to convert nil to DateTime" do

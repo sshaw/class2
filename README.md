@@ -124,6 +124,24 @@ For more info on accessor formats and JSON see:
 * [`Class2::UpperCamelCase`](https://www.rubydoc.info/gems/class2/Class2/UpperCamelCase)
 * [`Class2::LowerCamelCase`](https://www.rubydoc.info/gems/class2/Class2/LowerCamelCase)
 
+[Using Ruby-specific JSON extensions](https://github.com/ruby/json?tab=readme-ov-file#usage) you can define
+Ruby types in the JSON class2 will use for type conversion:
+
+```json
+{
+  "id": 0,
+  "name": "string",
+  "updated_at": {"json_class":"Time","s":0,"n":0},
+}
+```
+
+Will result in:
+
+- `#id` returning an `Integer` instance
+- `#name` returning a `String` instance
+- `#updated_at` returning a `Time` instance
+
+This will work for any [supported conversions](#conversions).
 
 You can also autoload a definition from a DATA section:
 

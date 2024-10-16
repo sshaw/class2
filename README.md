@@ -191,6 +191,7 @@ You can use any of these classes or their instances in your class definitions:
 * `Float`
 * `Hash`
 * `Integer`
+* `Time`
 * `TrueClass`/`FalseClass` - either one will cause a boolean conversion
 
 Custom conversions are possible, just add the conversion to

@@ -1,3 +1,9 @@
+2024-10-15  v0.6.0
+--------------------
+* Bug fix: autoloading in data section with namespace
+* Add support for Time conversion
+* Remove use of deprecated Fixnum
+
 2020-04-24  v0.5.2
 --------------------
 * Bug fix: Fix NoMethodError in ActiveSupport 6's Module.parent

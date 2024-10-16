@@ -129,13 +129,21 @@ Ruby types in the JSON class2 will use for type conversion:
 
 ```json
 {
-  "id": 0,
-  "name": "string",
-  "updated_at": {"json_class":"Time","s":0,"n":0},
+  "your_class": {
+    "id": 0,
+    "name": "string",
+    "updated_at": {"json_class":"Time","s":0,"n":0},
+  }
 }
 ```
 
-Will result in:
+Then require the appropriate JSON conversion class:
+
+```rb
+require "json/add/time"
+```
+
+This will result in class2 creating a `MyClass` class with the following:
 
 - `#id` returning an `Integer` instance
 - `#name` returning a `String` instance

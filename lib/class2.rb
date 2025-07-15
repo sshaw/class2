@@ -3,10 +3,43 @@
 require "date"
 require "time"                  # for parse()
 require "json"
-require "active_support/core_ext/module"
-require "active_support/inflector"
+require "strings/inflection"
 
 require "class2/version"
+
+# String extensions to replace ActiveSupport inflector functionality
+class String
+  def classify
+    # Use strings-inflection for singularization, then apply classification logic
+    # Handle the known issue with "address" -> "addres"
+    singular = case self
+                when /(.*)address(es)?$/
+                  # Handle any word ending with "address" or "addresses"
+                  prefix = $1
+                  prefix + 'address'
+                else
+                  Strings::Inflection.singularize(self)
+                end
+    
+    singular.gsub(/\/(.?)/) { "::#{$1.upcase}" }.gsub(/(?:^|_)(.)/) { $1.upcase }
+  end
+
+  def pluralize
+    Strings::Inflection.pluralize(self)
+  end
+
+  def singularize
+    # Handle known issue with strings-inflection for "address"
+    case self
+    when /(.*)address(es)?$/
+      # Handle any word ending with "address" or "addresses"
+      prefix = $1
+      prefix + 'address'
+    else
+      Strings::Inflection.singularize(self)
+    end
+  end
+end
 
 no_export = ENV["CLASS2_NO_EXPORT"]
 

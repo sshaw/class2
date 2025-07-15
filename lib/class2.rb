@@ -284,8 +284,8 @@ class Class2
 
               name = key.to_s.classify
 
-              # parent is deprecated in ActiveSupport 6 and its warning uses Strong#squish! which they don't include!
-              parent = self.class.respond_to?(:module_parent) ? self.class.module_parent : self.class.parent
+              # Get the parent module (equivalent to ActiveSupport's module_parent/parent)
+              parent = self.class.name.split('::')[0..-2].inject(Object) { |mod, name| mod.const_get(name) }
               next unless parent.const_defined?(name)
 
               klass = parent.const_get(name)

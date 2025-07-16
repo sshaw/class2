@@ -30,46 +30,46 @@ describe Class2 do
 
     it "creates the classes" do
       @classes.each do |klass|
-        Object.const_defined?(klass).must_equal true
-        Object.const_get(klass).must_be_instance_of Class
+        _(Object.const_defined?(klass)).must_equal true
+        _(Object.const_get(klass)).must_be_instance_of Class
       end
     end
 
     it "creates a read write accessor for each attribute" do
       user = User.new
-      user.must_respond_to(:id)
-      user.must_respond_to(:id=)
+      _(user).must_respond_to(:id)
+      _(user).must_respond_to(:id=)
 
-      user.must_respond_to(:name)
-      user.must_respond_to(:name=)
+      _(user).must_respond_to(:name)
+      _(user).must_respond_to(:name=)
 
-      user.must_respond_to(:addresses)
-      user.must_respond_to(:addresses=)
+      _(user).must_respond_to(:addresses)
+      _(user).must_respond_to(:addresses=)
 
       user.id = 1
-      user.id.must_equal 1
+      _(user.id).must_equal 1
 
       user.name = "sshaw"
-      user.name.must_equal "sshaw"
+      _(user.name).must_equal "sshaw"
 
       a = [ Address.new ]
       user.addresses = a
-      user.addresses.must_equal a
+      _(user.addresses).must_equal a
     end
 
     it "creates equality methods" do
       user1 = User.new(:id => 1)
       user2 = User.new(:id => 1)
-      user1.must_equal user2
+      _(user1).must_equal user2
 
       user1.id = 99
-      user1.wont_equal user2
-      user1.wont_equal "foo"
+      _(user1).wont_equal user2
+      _(user1).wont_equal "foo"
     end
 
     it "creates a #to_h method" do
       user = User.new(:id => 1, :name => "sshaw", :addresses => [ :city => "NYC" ])
-      user.to_h.must_equal(
+      _(user.to_h).must_equal(
         :id => 1,
         :name => "sshaw",
         :addresses => [
@@ -84,7 +84,7 @@ describe Class2 do
       )
 
       user.name = user.addresses = nil
-      user.to_h.must_equal(
+      _(user.to_h).must_equal(
         :id => 1,
         :name => nil,
         :addresses => []
@@ -93,30 +93,30 @@ describe Class2 do
 
     describe "attributes that accept an Array" do
       it "returns an Array by default" do
-        User.new.addresses.must_equal []
+        _(User.new.addresses).must_equal []
       end
     end
 
     describe "constructors" do
       it "accepts the class' attributes" do
         user = User.new(:id => 1, :name => "fofinho")
-        user.id.must_equal 1
-        user.name.must_equal "fofinho"
+        _(user.id).must_equal 1
+        _(user.name).must_equal "fofinho"
 
         country = Country.new(:name => "America", :code => "US")
-        country.name.must_equal "America"
-        country.code.must_equal "US"
+        _(country.name).must_equal "America"
+        _(country.code).must_equal "US"
 
         address = Address.new(:city => "Da Bay", :state => "CA", :country => country)
-        address.city.must_equal "Da Bay"
-        address.state.must_equal "CA"
-        address.country.must_equal country
+        _(address.city).must_equal "Da Bay"
+        _(address.state).must_equal "CA"
+        _(address.country).must_equal country
       end
 
       it "accepts know and unknown attributes" do
         user = User.new(:id => 1, :what_what_what => 999)
-        user.id.must_equal 1
-        user.respond_to?(:what_what_what).must_equal false
+        _(user.id).must_equal 1
+        _(user.respond_to?(:what_what_what)).must_equal false
       end
 
       it "does not require any arguments" do
@@ -140,13 +140,13 @@ describe Class2 do
           ]
         )
 
-        user.id.must_equal 1
-        user.name.must_equal "sshaw"
-        user.addresses.size.must_equal 2
-        user.addresses[0].city.must_equal "LA"
-        user.addresses[0].country.code.must_equal "US"
-        user.addresses[1].city.must_equal "São José dos Campos"
-        user.addresses[1].country.code.must_equal "BR"
+        _(user.id).must_equal 1
+        _(user.name).must_equal "sshaw"
+        _(user.addresses.size).must_equal 2
+        _(user.addresses[0].city).must_equal "LA"
+        _(user.addresses[0].country.code).must_equal "US"
+        _(user.addresses[1].city).must_equal "São José dos Campos"
+        _(user.addresses[1].country.code).must_equal "BR"
       end
     end
   end
@@ -162,8 +162,8 @@ describe Class2 do
       )
 
       klass = "#{namespace}::User"
-      Object.const_defined?(klass).must_equal true
-      Object.const_get(klass).must_be_instance_of Class
+      _(Object.const_defined?(klass)).must_equal true
+      _(Object.const_get(klass)).must_be_instance_of Class
     end
 
     it "creates a namespaced class from module" do
@@ -175,8 +175,8 @@ describe Class2 do
       )
 
       klass = "A::User"
-      Object.const_defined?(klass).must_equal true
-      Object.const_get(klass).must_be_instance_of Class
+      _(Object.const_defined?(klass)).must_equal true
+      _(Object.const_get(klass)).must_be_instance_of Class
     end
 
     it "instantiates classes within the namespace using an attribute key" do
@@ -188,7 +188,7 @@ describe Class2 do
       )
 
       user = A::User.new(:foo => { :bar => 123 })
-      user.foo.bar.must_equal 123
+      _(user.foo.bar).must_equal 123
     end
 
     it "instantiates default instances of a nested attribute's class" do
@@ -197,7 +197,7 @@ describe Class2 do
         :user => { :foo => [:bar] }
       )
 
-      A::User.new.foo.must_be_instance_of(A::Foo)
+      _(A::User.new.foo).must_be_instance_of(A::Foo)
     end
 
     describe "when a class with the same name exists outside the namespace"  do
@@ -208,8 +208,8 @@ describe Class2 do
         class2 "A", :user => %w[id]
 
         klass = "A::User"
-        Object.const_defined?(klass).must_equal true
-        Object.const_get(klass).must_be_instance_of Class
+        _(Object.const_defined?(klass)).must_equal true
+        _(Object.const_get(klass)).must_be_instance_of Class
       end
     end
   end
@@ -253,107 +253,107 @@ describe Class2 do
         all = All.new
 
         all.integer = "123"
-        all.integer.must_equal 123
+        _(all.integer).must_equal 123
       end
 
       it "converts in the constructor" do
         all = All.new(:integer => "123")
-        all.integer.must_equal 123
+        _(all.integer).must_equal 123
       end
 
       it "converts nested types" do
         nested = Nested.new(:float => "1", :child => { :id => "1" })
-        nested.float.must_equal 1.0
-        nested.child.id.must_equal 1
+        _(nested.float).must_equal 1.0
+        _(nested.child.id).must_equal 1
       end
 
       it "does not convert attributes without types" do
         mixed = Mixed.new(:default => /foo/, :float => 1)
-        mixed.float.must_equal 1.0
-        mixed.default.must_equal(/foo/)
+        _(mixed.float).must_equal 1.0
+        _(mixed.default).must_equal(/foo/)
       end
 
       it "converts to Array" do
         all = All.new(:array => Set.new([1,2]))
-        all.array.must_equal [1,2]
+        _(all.array).must_equal [1,2]
       end
 
       it "converts to boolean" do
         all = All.new
         ["1", "    1 ", 1, 1.0, true].each do |value|
           all.boolean = value
-          all.boolean.must_equal true
+          _(all.boolean).must_equal true
         end
 
         ["0", "    0 ", 0, false, "sshaw", Class].each do |value|
           all.boolean = value
-          all.boolean.must_equal false
+          _(all.boolean).must_equal false
         end
       end
 
       it "converts to Date" do
         date = "2017-01-01"
         all = All.new(:date => date)
-        all.date.must_equal Date.parse("2017-01-01")
+        _(all.date).must_equal Date.parse("2017-01-01")
       end
 
       it "does not try to convert nil to Date" do
-        All.new(:date => nil).date.must_be_nil
+        _(All.new(:date => nil).date).must_be_nil
       end
 
       it "converts to DateTime" do
         time = "2017-01-01T01:02:03"
         all = All.new(:datetime => time)
-        all.datetime.must_equal DateTime.parse(time)
+        _(all.datetime).must_equal DateTime.parse(time)
       end
 
       it "converts to Time" do
         time = "2017-01-01T01:02:03"
         all = All.new(:time => time)
-        all.time.must_equal Time.parse(time)
+        _(all.time).must_equal Time.parse(time)
       end
 
       it "does not try to convert nil to DateTime" do
-        All.new(:datetime => nil).datetime.must_be_nil
+        _(All.new(:datetime => nil).datetime).must_be_nil
       end
 
       it "converts to Float" do
         all = All.new(:float => 10)
-        all.float.must_equal 10.0
+        _(all.float).must_equal 10.0
 
         all.float = "10.5"
-        all.float.must_equal 10.5
+        _(all.float).must_equal 10.5
       end
 
       it "does not try to convert nil to Float" do
-        All.new(:float => nil).float.must_be_nil
+        _(All.new(:float => nil).float).must_be_nil
       end
 
       it "converts to Hash" do
         all = All.new(:hash => [%w[a 1], %w[b 2]])
-        all.hash.must_equal "a" => "1", "b" => "2"
+        _(all.hash).must_equal "a" => "1", "b" => "2"
       end
 
       it "converts to Integer" do
         all = All.new(:fixnum => "123")
-        all.fixnum.must_equal 123
+        _(all.fixnum).must_equal 123
       end
 
       it "does not try to convert nil to Integer" do
-        All.new(:fixnum => nil).fixnum.must_be_nil
+        _(All.new(:fixnum => nil).fixnum).must_be_nil
       end
 
       it "converts to String" do
         all = All.new(:string => 123)
-        all.string.must_equal "123"
+        _(all.string).must_equal "123"
       end
 
       it "defaults to an empty Array for array types" do
-        All.new.array.must_equal []
+        _(All.new.array).must_equal []
       end
 
       it "defaults to an empty Hash for hash types" do
-        All.new.hash.must_equal Hash.new
+        _(All.new.hash).must_equal Hash.new
       end
     end
 
@@ -381,46 +381,46 @@ describe Class2 do
 
       it "creates the classes" do
         @classes.each do |klass|
-          Object.const_defined?(klass).must_equal true
-          Object.const_get(klass).must_be_instance_of Class
+          _(Object.const_defined?(klass)).must_equal true
+          _(Object.const_get(klass)).must_be_instance_of Class
         end
       end
 
       it "creates a read write accessor for each attribute" do
         user = User.new
-        user.must_respond_to(:id)
-        user.must_respond_to(:id=)
+        _(user).must_respond_to(:id)
+        _(user).must_respond_to(:id=)
 
-        user.must_respond_to(:name)
-        user.must_respond_to(:name=)
+        _(user).must_respond_to(:name)
+        _(user).must_respond_to(:name=)
 
         address = Address.new
-        address.must_respond_to(:city)
-        address.must_respond_to(:city=)
+        _(address).must_respond_to(:city)
+        _(address).must_respond_to(:city=)
 
-        address.must_respond_to(:lat)
-        address.must_respond_to(:lat=)
+        _(address).must_respond_to(:lat)
+        _(address).must_respond_to(:lat=)
       end
 
       it "converts types based on the instance's type" do
         user = User.new(:id => "1", :name => 123, :addresses => [ :lat => 75 ])
-        user.id.must_equal 1
-        user.name.must_equal "123"
-        user.addresses.first.must_be_instance_of(Address)
-        user.addresses.first.lat.must_equal 75.0
+        _(user.id).must_equal 1
+        _(user.name).must_equal "123"
+        _(user.addresses.first).must_be_instance_of(Address)
+        _(user.addresses.first.lat).must_equal 75.0
       end
 
       it "defaults to an empty Array for array types" do
-        User.new.foo.must_equal Hash.new
+        _(User.new.foo).must_equal Hash.new
       end
 
       it "defaults to an empty Hash for hash types" do
-        User.new.bar.must_equal []
+        _(User.new.bar).must_equal []
       end
 
       describe "a String attribute that's nil" do
         it "does not convert nil to empty str" do
-          User.new(:name => nil).name.must_be_nil
+          _(User.new(:name => nil).name).must_be_nil
         end
       end
     end
@@ -438,7 +438,7 @@ describe Class2 do
 
       it "converters the value" do
         u = User.new(:homepage => "http://example.com")
-        u.homepage.must_be_instance_of(URI::HTTP)
+        _(u.homepage).must_be_instance_of(URI::HTTP)
       end
     end
   end
@@ -456,28 +456,28 @@ describe Class2 do
 
     it "adds CamelCase versions of the snake_case methods" do
       foo = Foo.new
-      foo.must_respond_to(:SomeValue)
-      foo.must_respond_to(:SomeValue=)
+      _(foo).must_respond_to(:SomeValue)
+      _(foo).must_respond_to(:SomeValue=)
 
-      foo.must_respond_to(:AnotherValue)
-      foo.must_respond_to(:AnotherValue=)
+      _(foo).must_respond_to(:AnotherValue)
+      _(foo).must_respond_to(:AnotherValue=)
     end
 
     it "assigns snake_case arguments to their CamelCase attributes" do
       foo = Foo.new(:some_value => 1, :another_value => 2)
-      foo.SomeValue.must_equal 1
-      foo.AnotherValue.must_equal 2
+      _(foo.SomeValue).must_equal 1
+      _(foo.AnotherValue).must_equal 2
     end
 
     it "assigns CamelCase arguments to their snake_case attributes" do
       foo = Foo.new(:SomeValue => 1, :AnotherValue => 2)
-      foo.some_value.must_equal 1
-      foo.another_value.must_equal 2
+      _(foo.some_value).must_equal 1
+      _(foo.another_value).must_equal 2
     end
 
     it "#to_h uses CamelCase keys" do
       foo = Foo.new(:some_value => 1, :another_value => 2)
-      foo.to_h.must_equal :SomeValue => 1, :AnotherValue => 2
+      _(foo.to_h).must_equal :SomeValue => 1, :AnotherValue => 2
     end
   end
 
@@ -494,8 +494,8 @@ describe Class2 do
 
     it "assigns snake_case arguments to their camelCase attributes" do
       foo = Foo.new(:some_value => 1, :another_value => 2)
-      foo.SomeValue.must_equal 1
-      foo.AnotherValue.must_equal 2
+      _(foo.SomeValue).must_equal 1
+      _(foo.AnotherValue).must_equal 2
     end
   end
 
@@ -512,12 +512,12 @@ describe Class2 do
 
     it "#as_json uses CamelCase keys" do
       foo = Foo.new(:some_value => 1, :another_value => 2)
-      foo.as_json.must_equal "SomeValue" => 1, "AnotherValue" => 2
+      _(foo.as_json).must_equal "SomeValue" => 1, "AnotherValue" => 2
     end
 
     it "#to_h uses the format used to define the class" do
       foo = Foo.new(:some_value => 1, :another_value => 2)
-      foo.to_h.must_equal :some_value => 1, :another_value => 2
+      _(foo.to_h).must_equal :some_value => 1, :another_value => 2
     end
   end
 
@@ -534,33 +534,33 @@ describe Class2 do
 
     it "adds snake_case versions of the camelCase methods" do
       foo = Foo.new
-      foo.must_respond_to(:some_value)
-      foo.must_respond_to(:some_value=)
+      _(foo).must_respond_to(:some_value)
+      _(foo).must_respond_to(:some_value=)
 
-      foo.must_respond_to(:another_value)
-      foo.must_respond_to(:another_value=)
+      _(foo).must_respond_to(:another_value)
+      _(foo).must_respond_to(:another_value=)
     end
 
     it "assigns camelCase arguments to their snake_case attributes" do
       foo = Foo.new(:someValue => 1, :AnotherValue => 2)
-      foo.some_value.must_equal 1
-      foo.another_value.must_equal 2
+      _(foo.some_value).must_equal 1
+      _(foo.another_value).must_equal 2
     end
 
     it "assigns nested camelCase arguments to their snake_case attributes" do
       foo = Foo.new(:nestedValue => { :id => 1 })
-      foo.nested_value.must_equal NestedValue.new(:id => 1)
+      _(foo.nested_value).must_equal NestedValue.new(:id => 1)
     end
 
     it "assigns snake_case arguments to their cameCamel attributes" do
       foo = Foo.new(:some_value => 1, :another_value => 2)
-      foo.some_value.must_equal 1
-      foo.another_value.must_equal 2
+      _(foo.some_value).must_equal 1
+      _(foo.another_value).must_equal 2
     end
 
     it "assigns nested snake_case arguments" do
       foo = Foo.new(:nested_value => { :id => 1 })
-      foo.nested_value.must_equal NestedValue.new(:id => 1)
+      _(foo.nested_value).must_equal NestedValue.new(:id => 1)
     end
   end
 
@@ -578,12 +578,12 @@ describe Class2 do
 
     it "#as_json uses snake_case keys" do
       foo = Foo.new(:someValue => 1, :anotherValue => 2)
-      foo.as_json.must_equal "some_value" => 1, "another_value" => 2
+      _(foo.as_json).must_equal "some_value" => 1, "another_value" => 2
     end
 
     it "#to_h uses the format used to define the class" do
       foo = Foo.new(:someValue => 1, :anotherValue => 2)
-      foo.to_h.must_equal :someValue => 1, :anotherValue => 2
+      _(foo.to_h).must_equal :someValue => 1, :anotherValue => 2
     end
   end
 
@@ -597,12 +597,12 @@ describe Class2 do
     after { delete_constant("Foo") }
 
     it "creates a constructor that accepts know attributes" do
-      Foo.new(:bar => 123).bar.must_equal 123
-      Foo.new("bar" => 123).bar.must_equal 123
+      _(Foo.new(:bar => 123).bar).must_equal 123
+      _(Foo.new("bar" => 123).bar).must_equal 123
     end
 
     it "creates a constructor that raises an ArgumentError for unknown attributes" do
-      lambda { Foo.new(:baz => 123) }.must_raise ArgumentError, "unknown attribute: baz"
+      _{ Foo.new(:baz => 123) }.must_raise ArgumentError, "unknown attribute: baz"
     end
   end
 
@@ -611,7 +611,7 @@ describe Class2 do
 
     it "defines the file's in calling file's DATA section" do
       require_relative "./fixtures/autoload"
-      Object.const_defined?("User").must_equal true
+      _(Object.const_defined?("User")).must_equal true
     end
 
     it "defines the file's in global DATA section" do
@@ -620,7 +620,7 @@ describe Class2 do
                     $:[0],
                     File.join(__dir__, "fixtures/main.rb"))
 
-      `#{cmd}`.must_equal "constant\n"
+      _(`#{cmd}`).must_equal "constant\n"
     end
 
   end

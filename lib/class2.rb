@@ -3,10 +3,43 @@
 require "date"
 require "time"                  # for parse()
 require "json"
-require "active_support/core_ext/module"
-require "active_support/inflector"
+require "strings/inflection"
 
 require "class2/version"
+
+# String extensions to replace ActiveSupport inflector functionality
+class String
+  def classify
+    # Use strings-inflection for singularization, then apply classification logic
+    # Handle the known issue with "address" -> "addres"
+    singular = case self
+                when /(.*)address(es)?$/
+                  # Handle any word ending with "address" or "addresses"
+                  prefix = $1
+                  prefix + 'address'
+                else
+                  Strings::Inflection.singularize(self)
+                end
+    
+    singular.gsub(/\/(.?)/) { "::#{$1.upcase}" }.gsub(/(?:^|_)(.)/) { $1.upcase }
+  end
+
+  def pluralize
+    Strings::Inflection.pluralize(self)
+  end
+
+  def singularize
+    # Handle known issue with strings-inflection for "address"
+    case self
+    when /(.*)address(es)?$/
+      # Handle any word ending with "address" or "addresses"
+      prefix = $1
+      prefix + 'address'
+    else
+      Strings::Inflection.singularize(self)
+    end
+  end
+end
 
 no_export = ENV["CLASS2_NO_EXPORT"]
 
@@ -251,8 +284,8 @@ class Class2
 
               name = key.to_s.classify
 
-              # parent is deprecated in ActiveSupport 6 and its warning uses Strong#squish! which they don't include!
-              parent = self.class.respond_to?(:module_parent) ? self.class.module_parent : self.class.parent
+              # Get the parent module (equivalent to ActiveSupport's module_parent/parent)
+              parent = self.class.name.split('::')[0..-2].inject(Object) { |mod, name| mod.const_get(name) }
               next unless parent.const_defined?(name)
 
               klass = parent.const_get(name)

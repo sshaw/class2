@@ -1,3 +1,7 @@
+2026-09-16  v0.7.0
+--------------------
+* Drop ActiveSupport for inflections and use dry-inflector
+
 2026-09-16  v0.6.1
 --------------------
 * Add Class2::Inflector wrapper

@@ -6,4 +6,4 @@ end
 
 source = $1
 namespace = source =~ %r{/lib/(.+?)(?:\.rb)?\z} ? $1 : File.basename(source, File.extname(source))
-Class2.autoload(namespace.camelize, caller.unshift(caller[0]))
+Class2.autoload(Class2::Inflector.camelize(namespace), caller.unshift(caller[0]))

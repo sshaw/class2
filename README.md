@@ -191,8 +191,7 @@ To control the creation of the top-level methods, see the
 
 #### Naming
 
-`class2` uses
-[`String#classify`](http://api.rubyonrails.org/classes/String.html#method-i-classify)
+`class2` uses [`dry-inflector`](https://github.com/dry-rb/dry-inflector)
 to turn keys into class names: `:foo` will be `Foo`, `:foo_bars` will
 be `FooBar`.
 
@@ -202,7 +201,9 @@ used to derive the class names from the plural attribute names. An
 `:addresses` key with an `Array` value will result in a class named
 `Address` being created.
 
-Plurality is determined by [`String#pluralize`](http://api.rubyonrails.org/classes/String.html#method-i-pluralize).
+Plurality is determined by
+[`dry-inflector`](https://github.com/dry-rb/dry-inflector) loaded with
+ActiveSupport 6.1's rules. No `String` methods are added.
 
 #### Conversions
 

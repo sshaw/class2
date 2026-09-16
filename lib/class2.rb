@@ -4,8 +4,6 @@ require "date"
 require "time"                  # for parse()
 require "json"
 require "rbconfig"              # for autoload()
-require "active_support/core_ext/module"
-require "active_support/inflector"
 
 require "class2/version"
 require "class2/inflector"
@@ -145,7 +143,7 @@ class Class2
         object.each { |klass, attrs| make_class(namespace, klass, attrs, block) }
       end
 
-      name = name.to_s.classify
+      name = Inflector.classify(name)
       return if namespace.const_defined?(name, false)
 
       make_method_name = lambda { |x| x.to_s.gsub(/[^\w]+/, "_") } # good enough
@@ -234,7 +232,7 @@ class Class2
           method = make_method_name[method]
           attr_writer method
 
-          retval = method == method.pluralize ? "[]" : "#{namespace}::#{method.classify}.new"
+          retval = method == Inflector.pluralize(method) ? "[]" : "#{namespace}::#{Inflector.classify(method)}.new"
           class_eval <<-CODE
             def #{method}
               @#{method} ||= #{retval}
@@ -259,10 +257,11 @@ class Class2
             if self.class.__nested_attributes.include?(key.respond_to?(:to_sym) ? key.to_sym : key) &&
                (value.is_a?(Hash) || value.is_a?(Array))
 
-              name = key.to_s.classify
+              name = Inflector.classify(key)
 
-              # parent is deprecated in ActiveSupport 6 and its warning uses Strong#squish! which they don't include!
-              parent = self.class.respond_to?(:module_parent) ? self.class.module_parent : self.class.parent
+              # Neither Module#parent nor #module_parent, both ActiveSupport additions.
+              # For a class with no name this is Object, like #module_parent.
+              parent = self.class.name.to_s.split("::")[0..-2].inject(Object) { |mod, c| mod.const_get(c) }
               next unless parent.const_defined?(name)
 
               klass = parent.const_get(name)
@@ -303,7 +302,7 @@ class Class2
   module UpperCamelCase
     module Attributes
       def self.included(klass)
-        Util.convert_attributes(klass) { |v| v.camelize }
+        Util.convert_attributes(klass) { |v| Inflector.camelize(v) }
       end
     end
 
@@ -324,13 +323,13 @@ class Class2
   module LowerCamelCase
     module Attributes
       def self.included(klass)
-        Util.convert_attributes(klass) { |v| v.camelize(:lower) }
+        Util.convert_attributes(klass) { |v| Inflector.camelize(v, true) }
       end
     end
 
     module JSON
       def as_json(*)
-        Util.as_json(self, :camelize, :lower)
+        Util.as_json(self, :camelize, true)
       end
 
       def to_json(*argz)
@@ -353,7 +352,7 @@ class Class2
     #
     module Attributes
       def self.included(klass)
-        Util.convert_attributes(klass) { |v| v.underscore }
+        Util.convert_attributes(klass) { |v| Inflector.underscore(v) }
       end
     end
 
@@ -373,18 +372,18 @@ class Class2
   end
 
   module Util
-    def self.as_json(klass, *argz)
+    def self.as_json(klass, method, *argz)
       hash = {}
       klass.to_h.each do |k, v|
         if v.is_a?(Hash)
-          v = as_json(v, *argz)
+          v = as_json(v, method, *argz)
         elsif v.is_a?(Array)
-          v = v.map { |e| as_json(e, *argz) }
+          v = v.map { |e| as_json(e, method, *argz) }
         elsif v.respond_to?(:as_json)
           v = v.as_json
         end
 
-        hash[k.to_s.public_send(*argz)] = v
+        hash[Inflector.public_send(method, k.to_s, *argz)] = v
       end
 
       hash

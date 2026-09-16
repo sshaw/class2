@@ -44,6 +44,55 @@ class Class2
   CONVERSIONS[FalseClass] = CONVERSIONS[TrueClass]
   CONVERSIONS.default = lambda { |v| v }
 
+  #
+  # Methods common to every class created by Class2. They're defined here, and
+  # not in the class itself, so that an attribute with the same name (e.g. +:hash+)
+  # simply overrides them instead of triggering Ruby's method redefinition warning.
+  #
+  module InstanceMethods
+    def hash
+      to_h.hash
+    end
+
+    def ==(other)
+      return false unless other.instance_of?(self.class)
+      to_h == other.to_h
+    end
+
+    alias eql? ==
+
+    def to_h
+      hash = {}
+      self.class.__attributes.each do |name|
+        hash[name] = v = public_send(name)
+        # Don't turn nil into a Hash
+        next if v.nil? || !v.respond_to?(:to_h)
+        # Don't turn empty Arrays into a Hash
+        next if v.is_a?(Array) && v.empty?
+
+        errors = [ ArgumentError, TypeError ]
+        # Seems needlessly complicated, why doesn't Hash() do some of this?
+        begin
+          hash[name] = v.to_h
+          # to_h is dependent on its contents
+        rescue *errors
+          next unless v.is_a?(Enumerable)
+          hash[name] = v.map do |e|
+            begin
+              e.respond_to?(:to_h) ? e.to_h : e
+            rescue *errors
+              e
+            end
+          end
+        end
+      end
+
+      hash
+    end
+  end
+
+  private_constant :InstanceMethods
+
   class << self
     def new(*argz, &block)
       specs = argz
@@ -134,7 +183,9 @@ class Class2
         end
       end
 
-      [ nested, simple ]
+      # The same attribute ends up in the list more than once when instances
+      # are used to specify a type: [ { :city => "LA" }, { :city => "NYC" } ]
+      [ nested, simple.uniq { |attributes| attributes.keys.first } ]
     end
 
     def make_class(namespace, name, attributes, block)
@@ -149,51 +200,13 @@ class Class2
       make_method_name = lambda { |x| x.to_s.gsub(/[^\w]+/, "_") } # good enough
 
       klass = Class.new do
+        include InstanceMethods
+
         def initialize(attributes = nil)
           __initialize(attributes)
         end
 
         class_eval <<-CODE, __FILE__, __LINE__
-          def hash
-            to_h.hash
-          end
-
-          def ==(other)
-            return false unless other.instance_of?(self.class)
-            to_h == other.to_h
-          end
-
-          alias eql? ==
-
-          def to_h
-            hash = {}
-            self.class.__attributes.each do |name|
-              hash[name] = v = public_send(name)
-              # Don't turn nil into a Hash
-              next if v.nil? || !v.respond_to?(:to_h)
-              # Don't turn empty Arrays into a Hash
-              next if v.is_a?(Array) && v.empty?
-
-              errors = [ ArgumentError, TypeError ]
-              # Seems needlessly complicated, why doesn't Hash() do some of this?
-              begin
-                hash[name] = v.to_h
-                # to_h is dependent on its contents
-              rescue *errors
-                next unless v.is_a?(Enumerable)
-                hash[name] = v.map do |e|
-                  begin
-                    e.respond_to?(:to_h) ? e.to_h : e
-                  rescue *errors
-                    e
-                  end
-                end
-              end
-            end
-
-            hash
-          end
-
           def self.__nested_attributes
             #{nested.map { |n| n.keys.first.to_sym }}.freeze
           end
@@ -282,16 +295,25 @@ class Class2
   # cause an ArgumentError to be raised if an attribute is unknown.
   #
   module StrictConstructor
-    def self.included(klass)
-      klass.class_eval do
-        def initialize(attributes = nil)
-          return unless __initialize(attributes)
-          attributes.each do |name, _|
-            next if self.class.__attributes.include?(name.respond_to?(:to_sym) ? name.to_sym : name)
-            raise ArgumentError, "unknown attribute: #{name}"
-          end
+    #
+    # #initialize is prepended, instead of being defined in the class, so that
+    # the check runs before the class' own #initialize without redefining it
+    # (and without triggering Ruby's method redefinition warning).
+    #
+    module Constructor
+      def initialize(attributes = nil)
+        return unless __initialize(attributes)
+        attributes.each do |name, _|
+          next if self.class.__attributes.include?(name.respond_to?(:to_sym) ? name.to_sym : name)
+          raise ArgumentError, "unknown attribute: #{name}"
         end
       end
+    end
+
+    private_constant :Constructor
+
+    def self.included(klass)
+      klass.prepend(Constructor)
     end
   end
 
@@ -390,6 +412,7 @@ class Class2
 
     def self.convert_attributes(klass)
       klass.class_eval do
+        old_nested = __nested_attributes
         new_nested = []
         new_attributes = []
 
@@ -399,19 +422,18 @@ class Class2
           alias_method "#{new_name}=", "#{old_name}="
 
           new_attributes << new_name.to_sym
-          new_nested << new_attributes.last if __nested_attributes.include?(old_name)
+          new_nested << new_attributes.last if old_nested.include?(old_name)
         end
 
-        class_eval <<-CODE
-          def self.__attributes
-            #{new_attributes}.freeze
-          end
+        # The new names are defined in a module that's prepended to the class'
+        # singleton class. Defining them in the class would redefine the methods
+        # it already has, and Ruby would warn about it
+        singleton_class.prepend(Module.new do
+          define_method(:__attributes) { new_attributes.freeze }
 
-          # We need both styles nere to support proper assignment of nested attributes... :(
-          def self.__nested_attributes
-            #{new_nested + __nested_attributes}.freeze
-          end
-        CODE
+          # We need both styles here to support proper assignment of nested attributes... :(
+          define_method(:__nested_attributes) { (new_nested + old_nested).freeze }
+        end)
       end
     end
   end

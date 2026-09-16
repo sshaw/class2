@@ -1,3 +1,7 @@
+2026-09-16  v0.6.1
+--------------------
+* Add Class2::Inflector wrapper
+
 2024-10-15  v0.6.0
 --------------------
 * Bug fix: autoloading in data section with namespace

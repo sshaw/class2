@@ -67,11 +67,13 @@ class Class2
       # Ignore our autoload file and require()'s internals. Both their file
       # names and the backtrace format change between Rubies: kernel_require.rb
       # and bundled_gems.rb (3.3+) are where the frames come from, and since
-      # 3.4 frames are quoted with ' instead of `
+      # 3.4 frames are quoted with ' instead of `. Some Rubies report the
+      # rubygems frames as <internal:...>, which is not a readable path.
       #
       libdir = RbConfig::CONFIG["rubylibdir"]
       failure["cannot find the right caller"] unless (stack || caller).find do |line|
-        line =~ /(.+):\d+:in\s+[`']\S/ && $1.index("/class2/autoload.rb").nil? && !$1.start_with?(libdir)
+        line =~ /(.+):\d+:in\s+[`']\S/ && $1.index("/class2/autoload.rb").nil? &&
+          !$1.start_with?(libdir, "<internal:")
       end
 
       # Give this precedence over global DATA constant

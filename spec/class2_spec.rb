@@ -756,6 +756,20 @@ describe Class2 do
       _(Object.const_defined?("User")).must_equal true
     end
 
+    it "uses the caller when require()'s frames are marked internal" do
+      libdir = RbConfig::CONFIG["rubylibdir"]
+      fixture = File.join(__dir__, "fixtures/autoload.rb")
+      stack = [
+        "/somewhere/lib/class2/autoload.rb:2:in `<top (required)>'",
+        "<internal:#{libdir}/rubygems/core_ext/kernel_require.rb>:136:in `require'",
+        "#{fixture}:1:in `<top (required)>'"
+      ]
+
+      Class2.autoload(Object, stack)
+
+      _(Object.const_defined?("User")).must_equal true
+    end
+
     it "aborts when the stack holds nothing but require()'s frames" do
       libdir = RbConfig::CONFIG["rubylibdir"]
       stack = [

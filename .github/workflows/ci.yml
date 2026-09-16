@@ -9,19 +9,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    # 3.2+ is expected to fail for reasons unrelated to the code under test, both
-    # of which need changes outside this workflow:
-    #
-    #   * The gemspec pins `rake ~> 10.0`. Rake 10 calls `Proc#=~`, and
-    #     `Object#=~` was removed in Ruby 3.2, so `bundle exec rake` aborts
-    #     before any test runs.
-    #   * `Class2.autoload` locates its caller by matching the old backtrace
-    #     format (`` `Foo#bar' ``), which newer Rubies no longer emit, so the
-    #     autoload specs abort.
-    #
-    # Allowed to fail so that the state of the rest of the matrix stays visible.
-    continue-on-error: ${{ contains(fromJSON('["3.2", "3.3", "3.4", "4.0"]'), matrix.ruby) }}
-
     strategy:
       fail-fast: false
       matrix:

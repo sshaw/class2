@@ -3,6 +3,7 @@
 require "date"
 require "time"                  # for parse()
 require "json"
+require "rbconfig"              # for autoload()
 require "active_support/core_ext/module"
 require "active_support/inflector"
 
@@ -62,9 +63,15 @@ class Class2
 
     def autoload(namespace = Object, stack = nil) # :nodoc:
       failure = lambda { |message|  abort "class2: cannot autoload class definitions: #{message}" }
+      #
+      # Ignore our autoload file and require()'s internals. Both their file
+      # names and the backtrace format change between Rubies: kernel_require.rb
+      # and bundled_gems.rb (3.3+) are where the frames come from, and since
+      # 3.4 frames are quoted with ' instead of `
+      #
+      libdir = RbConfig::CONFIG["rubylibdir"]
       failure["cannot find the right caller"] unless (stack || caller).find do |line|
-        # Ignore our autoload file and require()
-        line.index("/class2/autoload.rb:").nil? && line.index("/kernel_require.rb:").nil? && line =~ /(.+):\d+:in\s+`\S/
+        line =~ /(.+):\d+:in\s+[`']\S/ && $1.index("/class2/autoload.rb").nil? && !$1.start_with?(libdir)
       end
 
       # Give this precedence over global DATA constant

@@ -706,4 +706,67 @@ describe Class2 do
     end
 
   end
+
+  describe "Class2.autoload" do
+    after { delete_constant("User") }
+
+    # autoload() reads the DATA section of the first caller that is not part of
+    # require()'s implementation. The frames belonging to it, and their quoting,
+    # differ between Ruby versions, so hand it the styles it has to cope with
+    # rather than rely on the one this Ruby produces.
+    it "uses the caller that's above require()'s rubygems frames" do
+      libdir = RbConfig::CONFIG["rubylibdir"]
+      fixture = File.join(__dir__, "fixtures/autoload.rb")
+      stack = [
+        "/somewhere/lib/class2/autoload.rb:2:in `<top (required)>'",
+        "#{libdir}/rubygems/core_ext/kernel_require.rb:136:in `require'",
+        "#{fixture}:1:in `<top (required)>'"
+      ]
+
+      Class2.autoload(Object, stack)
+
+      _(Object.const_defined?("User")).must_equal true
+    end
+
+    it "uses the caller when require()'s frames come from bundled_gems.rb" do
+      libdir = RbConfig::CONFIG["rubylibdir"]
+      fixture = File.join(__dir__, "fixtures/autoload.rb")
+      stack = [
+        "/somewhere/lib/class2/autoload.rb:2:in `<top (required)>'",
+        "#{libdir}/bundled_gems.rb:75:in `require'",
+        "#{fixture}:1:in `<top (required)>'"
+      ]
+
+      Class2.autoload(Object, stack)
+
+      _(Object.const_defined?("User")).must_equal true
+    end
+
+    it "uses the caller when require()'s frames are single quoted" do
+      libdir = RbConfig::CONFIG["rubylibdir"]
+      fixture = File.join(__dir__, "fixtures/autoload.rb")
+      stack = [
+        "/somewhere/lib/class2/autoload.rb:2:in '<top (required)>'",
+        "#{libdir}/bundled_gems.rb:82:in 'Kernel.require'",
+        "#{fixture}:1:in '<top (required)>'"
+      ]
+
+      Class2.autoload(Object, stack)
+
+      _(Object.const_defined?("User")).must_equal true
+    end
+
+    it "aborts when the stack holds nothing but require()'s frames" do
+      libdir = RbConfig::CONFIG["rubylibdir"]
+      stack = [
+        "#{libdir}/bundled_gems.rb:82:in 'Kernel.require'",
+        "#{libdir}/rubygems/core_ext/kernel_require.rb:136:in `require'"
+      ]
+
+      capture_io do
+        e = assert_raises(SystemExit) { Class2.autoload(Object, stack) }
+        _(e.message).must_equal "class2: cannot autoload class definitions: cannot find the right caller"
+      end
+    end
+  end
 end

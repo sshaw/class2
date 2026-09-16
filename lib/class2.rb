@@ -7,6 +7,7 @@ require "active_support/core_ext/module"
 require "active_support/inflector"
 
 require "class2/version"
+require "class2/inflector"
 
 no_export = ENV["CLASS2_NO_EXPORT"]
 

@@ -606,6 +606,88 @@ describe Class2 do
     end
   end
 
+  describe "Class2::Inflector" do
+    it "#classify singularizes and camelizes" do
+      _(Class2::Inflector.classify("user")).must_equal "User"
+      _(Class2::Inflector.classify("addresses")).must_equal "Address"
+      _(Class2::Inflector.classify("statuses")).must_equal "Status"
+      _(Class2::Inflector.classify("user_status")).must_equal "UserStatus"
+      _(Class2::Inflector.classify("people")).must_equal "Person"
+      _(Class2::Inflector.classify("children")).must_equal "Child"
+      _(Class2::Inflector.classify("admin/users")).must_equal "Admin::User"
+    end
+
+    it "#pluralize uses ActiveSupport's rules" do
+      _(Class2::Inflector.pluralize("address")).must_equal "addresses"
+      _(Class2::Inflector.pluralize("category")).must_equal "categories"
+      _(Class2::Inflector.pluralize("country")).must_equal "countries"
+      _(Class2::Inflector.pluralize("person")).must_equal "people"
+      _(Class2::Inflector.pluralize("people")).must_equal "people"
+      _(Class2::Inflector.pluralize("child")).must_equal "children"
+      _(Class2::Inflector.pluralize("children")).must_equal "children"
+      _(Class2::Inflector.pluralize("foot")).must_equal "foots"
+      _(Class2::Inflector.pluralize("fee")).must_equal "fees"
+    end
+
+    it "#singularize uses ActiveSupport's rules" do
+      _(Class2::Inflector.singularize("addresses")).must_equal "address"
+      _(Class2::Inflector.singularize("people")).must_equal "person"
+      _(Class2::Inflector.singularize("children")).must_equal "child"
+      _(Class2::Inflector.singularize("feet")).must_equal "feet"
+      _(Class2::Inflector.singularize("news")).must_equal "news"
+    end
+
+    it "considers a word uncountable when ActiveSupport does" do
+      _(Class2::Inflector.pluralize("money")).must_equal "money"
+      _(Class2::Inflector.singularize("police")).must_equal "police"
+      _(Class2::Inflector.pluralize("moneys")).must_equal "moneys"
+
+      # ActiveSupport matches the word, dry-inflector also matches its segments
+      _(Class2::Inflector.pluralize("user_money")).must_equal "user_moneys"
+
+      # ActiveSupport does not consider these uncountable
+      _(Class2::Inflector.pluralize("moose")).must_equal "mooses"
+      _(Class2::Inflector.pluralize("deer")).must_equal "deers"
+    end
+
+    it "#camelize and #underscore do not use acronyms" do
+      _(Class2::Inflector.camelize("some_value")).must_equal "SomeValue"
+      _(Class2::Inflector.camelize("some_value", true)).must_equal "someValue"
+      _(Class2::Inflector.camelize("api_key")).must_equal "ApiKey"
+      _(Class2::Inflector.camelize("api_key", true)).must_equal "apiKey"
+      _(Class2::Inflector.camelize("admin/user")).must_equal "Admin::User"
+
+      _(Class2::Inflector.underscore("SomeValue")).must_equal "some_value"
+      _(Class2::Inflector.underscore("APIClient")).must_equal "api_client"
+      _(Class2::Inflector.underscore("Admin::User")).must_equal "admin/user"
+    end
+  end
+
+  describe "plural attribute names" do
+    before do
+      Class2(:foo => [ :people => [:id], :children => [:id], :data => [:id], :moose => [:id] ])
+    end
+
+    after do
+      %w[Foo Person Child Datum Moose].each { |klass| delete_constant(klass) }
+    end
+
+    it "creates array readers for attributes whose name is plural" do
+      _(Foo.new.people).must_equal []
+      _(Foo.new.children).must_equal []
+      _(Foo.new.data).must_equal []
+    end
+
+    it "creates an instance reader for attributes whose name is not plural" do
+      _(Foo.new.moose).must_be_instance_of Moose
+    end
+
+    it "converts assigned arrays" do
+      foo = Foo.new(:people => [{ :id => 1 }, { :id => 2 }])
+      _(foo.people).must_equal [Person.new(:id => 1), Person.new(:id => 2)]
+    end
+  end
+
   describe "require 'class2/autoload'" do
     after { delete_constant("User") }
 
